@@ -1,5 +1,6 @@
 const puppeteer = require("puppeteer-extra");
 const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+const axios = require('axios');
 
 const { delayer, scrollToElement } = require("./../../assistants/helpers");
 const { getSector } = require("./../../assistants/sector-switcher");
@@ -50,12 +51,12 @@ const startCrawler = async () => {
         let counter8 = 0;
 
         for (let i = 0; i <= totalCards; i++) {
-            console.log(totalCards);
+            // console.log(totalCards);
 
             let activeCard = vacancyCards[i];
 
             if (!activeCard) {
-                console.log("Waiting card load...");
+                // console.log("Waiting card load...");
                 vacancyCards = await waitForNewCards(page, totalCards);
                 totalCards = vacancyCards.length;
                 if (totalCards === i) {
@@ -96,7 +97,7 @@ const startCrawler = async () => {
                 counter8++;
             }
 
-            console.log("Title:", vacancyTitle, "\nSection:", vacancySector);
+            // console.log("Title:", vacancyTitle, "\nSection:", vacancySector);
 
             const vacancyData = {
                 "sector": vacancySector,
@@ -111,6 +112,8 @@ const startCrawler = async () => {
             }
         }
 
+        await browser.close();
+
         console.log("Total vacancies:", totalCards);
         console.log("Finance & Banking:", counter2);
         console.log("Legal:", counter3);
@@ -121,6 +124,16 @@ const startCrawler = async () => {
         console.log("Business & Communications:", counter8);
         console.log("Other:", counter1);
         console.log("\nEuroclear crawler completed");
+
+        await axios.post(
+            'http://localhost:3001',
+            JSON.stringify(responseBody),
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        )
 
         return responseBody;
 
@@ -157,7 +170,6 @@ const waitForNewCards = async (page, beforeCards) => {
     }
 }
 
-startCrawler();
 
 module.exports = {
     startCrawler

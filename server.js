@@ -1,50 +1,81 @@
 const http = require('http');
+const cron = require('node-cron');
 
-const { startCrawler } = require("./crawlers/euroclear/index");
+const { startCrawler: euroclearCrawler } = require('./crawlers/euroclear/index');
+const { startCrawler: testCrawler } = require('./crawlers/test/index');
+
+const tasks = {};
 
 const PORT = 3000;
 
 const server = http.createServer((req, res) => {
     const { url, method } = req;
 
-    if (method === 'GET') {
-        res.statusCode = 200;
-        startCrawler()
-            .then(responseBody => {
-                // Встановлюємо заголовок для JSON
+    if (url === '/crawlers/test') {
+        if (method === 'GET') {
+            if (!tasks['test']) {
+                tasks['test'] = cron.schedule('*/1 * * * * *', testCrawler);
+                console.log('Cron task for test scheduled');
+                res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
-                // Відправляємо відповідь у форматі JSON
-                res.end(JSON.stringify({
-                    status: 'success',
-                    data: responseBody
-                }));
-            })
-            .catch(error => {
-                // Встановлюємо статус і заголовок для помилки
-                res.statusCode = 500;
+                res.end(JSON.stringify({ status: 'success', message: 'Cron task for test scheduled' }));
+            } else {
+                res.statusCode = 400;
+                res.end(JSON.stringify({ status: 'error', message: 'Cron task for test is already scheduled' }));
+            }
+        } else if (method === 'DELETE') {
+            // Видаляємо cron задачу для функції 2
+            if (tasks['test']) {
+                tasks['test'].stop();
+                delete tasks['test'];
+                console.log('Cron task for test removed');
+                res.statusCode = 200;
                 res.setHeader('Content-Type', 'application/json');
-                // Відправляємо повідомлення про помилку в JSON-форматі
-                res.end(JSON.stringify({
-                    status: 'error',
-                    message: 'Internal server error',
-                    error: error.toString()
-                }));
-            });
-    }
-
-    else if (method === 'DELETE') {
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'text/plain');
-        res.end('DELETE request');
+                res.end(JSON.stringify({ status: 'success', message: 'Cron task for test removed' }));
+            } else {
+                res.statusCode = 400;
+                res.end(JSON.stringify({ status: 'error', message: 'No cron task for test to remove' }));
+            }
+        } else {
+            res.statusCode = 405;
+            res.end(`Method ${method} not allowed`);
+        }
+    } else if (url === '/crawlers/euroclear') {
+        if (method === 'GET') {
+            if (!tasks['euroclear']) {
+                tasks['euroclear'] = cron.schedule('*/10 * * * *', euroclearCrawler, { scheduled: true });
+                console.log('Cron task for euroclear scheduled');
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ status: 'success', message: 'Cron task for euroclear scheduled' }));
+            } else {
+                res.statusCode = 400;
+                res.end(JSON.stringify({ status: 'error', message: 'Cron task for euroclear is already scheduled' }));
+            }
+        } else if (method === 'DELETE') {
+            if (tasks['euroclear']) {
+                tasks['euroclear'].stop();
+                delete tasks['euroclear'];
+                console.log('Cron task for euroclear removed');
+                res.statusCode = 200;
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify({ status: 'success', message: 'Cron task for euroclear removed' }));
+            } else {
+                res.statusCode = 400;
+                res.end(JSON.stringify({ status: 'error', message: 'No cron task for euroclear to remove' }));
+            }
+        } else {
+            res.statusCode = 405;
+            res.end(`Method ${method} not allowed`);
+        }
     }
 
     else {
-        res.statusCode = 405;
-        res.setHeader('Content-Type', 'text/plain');
-        res.end(`Method ${method} not allowed`);
+        res.statusCode = 404;
+        res.end('Route not found');
     }
 });
 
 server.listen(PORT, () => {
-    console.log(`Server started at port ${PORT}`);
+    console.log(`Server http://localhost:${PORT} started`);
 });
