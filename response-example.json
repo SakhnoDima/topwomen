@@ -4,16 +4,17 @@
     {
       "sector": "Engineer",
       "location": "Poland",
-      "url": "???  для переходу на сторінку з вакансією ",
-      "date": "???   для фільтрування за часом "
+      "url": "???"
     },
     {
       "sector": "Architect",
-      "location": "Belgium"
+      "location": "Belgium",
+      "url": "???"
     },
     {
       "sector": "Finance advisor",
-      "location": "Germany"
+      "location": "Germany",
+      "url": "???"
     }
   ]
 }
