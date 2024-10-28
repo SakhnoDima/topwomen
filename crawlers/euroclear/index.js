@@ -14,7 +14,14 @@ const startCrawler = async () => {
 
         // Init browser
         const browser = await puppeteer.launch({
-            headless: false,
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu',
+                '--window-size=1440,760',
+            ],
         });
 
         // Init page
@@ -100,6 +107,7 @@ const startCrawler = async () => {
             // console.log("Title:", vacancyTitle, "\nSection:", vacancySector);
 
             const vacancyData = {
+                "title": vacancyTitle,
                 "sector": vacancySector,
                 "location": vacancyLocation,
                 "url": vacancyUrl
@@ -126,7 +134,7 @@ const startCrawler = async () => {
         console.log("\nEuroclear crawler completed");
 
         await axios.post(
-            'http://localhost:3001',
+            'https://topwomen.careers/wp-json/custom/v1/add-company-vacancies',
             JSON.stringify(responseBody),
             {
                 headers: {

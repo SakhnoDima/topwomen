@@ -3,7 +3,7 @@ const startCrawler = async () => {
     console.log("Test processing");
 
     await axios.post(
-        'http://localhost:3001',
+        'https://topwomen.careers/wp-json/custom/v1/add-company-vacancies',
         JSON.stringify({ "status": "OK" }),
         {
             headers: {
