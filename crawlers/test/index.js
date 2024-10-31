@@ -20,5 +20,3 @@ const startCrawler = async () => {
 module.exports = {
     startCrawler
 }
-
-startCrawler()

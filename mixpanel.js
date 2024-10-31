@@ -4,8 +4,8 @@ const Mixpanel = require('mixpanel');
 const {getTime} = require("./assistants/helpers");
 
 
-const mixpanel = Mixpanel.init('55c6bf4315f655991e2578538d013cc2', {
-    secret: 'd530bab81b365138cc23ba58ff4eff5e',
+const mixpanel = Mixpanel.init('1bd22151e54aec8e76f52e4b74e3580e', {
+    secret: '0cdc889d1420b2d13e90e2d563d09a89',
 });
 
 
