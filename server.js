@@ -2,9 +2,9 @@ const express = require("express");
 const cron = require("node-cron");
 const cors = require("cors");
 
-const {
-  startCrawler: euroclearCrawler,
-} = require("./crawlers/euroclear/index");
+const { trackMixpanel } = require("./mixpanel")
+
+const { startCrawler: euroclearCrawler } = require("./crawlers/euroclear/index");
 const { startCrawler: testCrawler } = require("./crawlers/test/index");
 
 const tasks = {};
@@ -12,20 +12,17 @@ const PORT = 3000;
 
 const app = express();
 
-// CORS configuration
 const corsOptions = {
-  origin: "https://topwomen.careers", // Allowed domain
+  origin: "https://topwomen.careers",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   allowedHeaders: "Content-Type, Authorization",
 };
 
-// Use CORS middleware
 app.use(cors(corsOptions));
 
-// Schedule a cron job for the test crawler
 app.get("/crawlers/test", (req, res) => {
   if (!tasks["test"]) {
-    tasks["test"] = cron.schedule("*/1 * * * * *", testCrawler);
+    tasks["test"] = cron.schedule("0 7,18 * * * *", testCrawler);
     console.log("Cron task for test scheduled");
     return res.status(200).json({
       status: "success",
@@ -39,7 +36,6 @@ app.get("/crawlers/test", (req, res) => {
   }
 });
 
-// Remove the cron job for the test crawler
 app.delete("/crawlers/test", (req, res) => {
   if (tasks["test"]) {
     tasks["test"].stop();
@@ -57,7 +53,6 @@ app.delete("/crawlers/test", (req, res) => {
   }
 });
 
-// Schedule a cron job for the euroclear crawler
 app.get("/crawlers/euroclear", (req, res) => {
   if (!tasks["euroclear"]) {
     tasks["euroclear"] = cron.schedule("*/10 * * * *", euroclearCrawler);
@@ -74,7 +69,6 @@ app.get("/crawlers/euroclear", (req, res) => {
   }
 });
 
-// Remove the cron job for the euroclear crawler
 app.delete("/crawlers/euroclear", (req, res) => {
   if (tasks["euroclear"]) {
     tasks["euroclear"].stop();
@@ -92,7 +86,6 @@ app.delete("/crawlers/euroclear", (req, res) => {
   }
 });
 
-// Handle 404 for all other routes
 app.use((req, res) => {
   res.status(404).json({
     status: "error",
@@ -100,7 +93,6 @@ app.use((req, res) => {
   });
 });
 
-// Start the server
 app.listen(PORT, () => {
   console.log(`Server http://localhost:${PORT} started`);
 });

@@ -1,7 +1,10 @@
 /node_modules/
+
 /.idea/.gitignore
 /.idea/jsLibraryMappings.xml
 /.idea/modules.xml
 /.idea/topwoman-crawler.iml
 /.idea/vcs.xml
 /.idea/topwomen.iml
+
+/.env

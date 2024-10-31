@@ -4,6 +4,7 @@ const axios = require('axios');
 
 const { delayer, scrollToElement } = require("./../../assistants/helpers");
 const { getSector } = require("./../../assistants/sector-switcher");
+const {trackMixpanel} = require("../../mixpanel");
 
 require("dotenv").config();
 puppeteer.use(StealthPlugin());
@@ -143,10 +144,13 @@ const startCrawler = async () => {
             }
         )
 
+        trackMixpanel("Euroclear", totalCards, true);
+
         return responseBody;
 
     } catch (error) {
         console.error('Euroclear crawler error:', error);
+        trackMixpanel("Euroclear", 0, false, error.message);
         throw error;
     }
 }
