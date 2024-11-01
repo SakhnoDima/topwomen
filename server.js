@@ -6,7 +6,6 @@ const { trackMixpanel } = require("./mixpanel")
 
 const { startCrawler: euroclearCrawler } = require("./crawlers/euroclear/index");
 const { startCrawler: testCrawler } = require("./crawlers/test/index");
-const { startCrawler: testCrawler2 } = require("./crawlers/test2/index");
 
 const tasks = {};
 const PORT = 3000;
