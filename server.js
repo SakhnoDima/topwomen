@@ -6,6 +6,7 @@ const { trackMixpanel } = require("./mixpanel")
 
 const { startCrawler: euroclearCrawler } = require("./crawlers/euroclear/index");
 const { startCrawler: testCrawler } = require("./crawlers/test/index");
+const { startCrawler: testCrawler2 } = require("./crawlers/test2/index");
 
 const tasks = {};
 const PORT = 3000;
@@ -19,6 +20,39 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+app.get("/crawlers/test2", (req, res) => {
+  if (!tasks["test2"]) {
+    tasks["test2"] = cron.schedule("*/10 * * * *", testCrawler2);
+    console.log("Cron task for test2 scheduled");
+    return res.status(200).json({
+      status: "success",
+      message: "Cron task for test2 scheduled",
+    });
+  } else {
+    return res.status(400).json({
+      status: "error",
+      message: "Cron task for test2 is already scheduled",
+    });
+  }
+});
+
+app.delete("/crawlers/test2", (req, res) => {
+  if (tasks["test2"]) {
+    tasks["test2"].stop();
+    delete tasks["test2"];
+    console.log("Cron task for test2 removed");
+    return res.status(200).json({
+      status: "success",
+      message: "Cron task for test2 removed",
+    });
+  } else {
+    return res.status(400).json({
+      status: "error",
+      message: "No cron task for test2 to remove",
+    });
+  }
+});
 
 app.get("/crawlers/test", (req, res) => {
   if (!tasks["test"]) {

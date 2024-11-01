@@ -149,7 +149,7 @@ const startCrawler = async () => {
         return responseBody;
 
     } catch (error) {
-        console.error('Euroclear crawler error:', error);
+        console.error('Euroclear 2 crawler error:', error);
         // trackMixpanel("Euroclear", 0, false, error.message);
         throw error;
     }
