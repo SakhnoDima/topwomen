@@ -21,42 +21,10 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-app.get("/crawlers/test2", (req, res) => {
-  if (!tasks["test2"]) {
-    tasks["test2"] = cron.schedule("*/10 * * * *", testCrawler2);
-    console.log("Cron task for test2 scheduled");
-    return res.status(200).json({
-      status: "success",
-      message: "Cron task for test2 scheduled",
-    });
-  } else {
-    return res.status(400).json({
-      status: "error",
-      message: "Cron task for test2 is already scheduled",
-    });
-  }
-});
-
-app.delete("/crawlers/test2", (req, res) => {
-  if (tasks["test2"]) {
-    tasks["test2"].stop();
-    delete tasks["test2"];
-    console.log("Cron task for test2 removed");
-    return res.status(200).json({
-      status: "success",
-      message: "Cron task for test2 removed",
-    });
-  } else {
-    return res.status(400).json({
-      status: "error",
-      message: "No cron task for test2 to remove",
-    });
-  }
-});
 
 app.get("/crawlers/test", (req, res) => {
   if (!tasks["test"]) {
-    tasks["test"] = cron.schedule("*/10 * * * *", testCrawler);
+    tasks["test"] = cron.schedule("*/5 * * * * *", testCrawler);
     console.log("Cron task for test scheduled");
     return res.status(200).json({
       status: "success",
@@ -89,7 +57,7 @@ app.delete("/crawlers/test", (req, res) => {
 
 app.get("/crawlers/euroclear", (req, res) => {
   if (!tasks["euroclear"]) {
-    tasks["euroclear"] = cron.schedule("*/10 * * * *", euroclearCrawler);
+    tasks["euroclear"] = cron.schedule("0 7,18 * * *", euroclearCrawler);
     console.log("Cron task for euroclear scheduled");
     return res.status(200).json({
       status: "success",

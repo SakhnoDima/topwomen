@@ -11,7 +11,7 @@ puppeteer.use(StealthPlugin());
 
 const startCrawler = async () => {
     try {
-        console.log('Euroclear 1 crawler started');
+        console.log('Euroclear crawler started');
 
         // Init browser
         const browser = await puppeteer.launch({
@@ -143,14 +143,14 @@ const startCrawler = async () => {
             }
         )
 
-        // trackMixpanel("Euroclear", totalCards, true);
-        console.log("\nEuroclear 1 crawler completed");
+        trackMixpanel("Euroclear", totalCards, true);
+        console.log("\nEuroclear crawler completed");
 
         return responseBody;
 
     } catch (error) {
-        console.error('Euroclear 1 crawler error:', error);
-        // trackMixpanel("Euroclear", 0, false, error.message);
+        console.error('Euroclear crawler error:', error);
+        trackMixpanel("Euroclear", 0, false, error.message);
         throw error;
     }
 }

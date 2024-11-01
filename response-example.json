@@ -2,16 +2,19 @@
   "company": "Euroclear",
   "vacancies": [
     {
+      "title": "Needed Engineer",
       "sector": "Engineer",
       "location": "Poland",
       "url": "???"
     },
     {
+      "title": "Needed Architect",
       "sector": "Architect",
       "location": "Belgium",
       "url": "???"
     },
     {
+      "title": "Needed Advisor",
       "sector": "Finance advisor",
       "location": "Germany",
       "url": "???"
