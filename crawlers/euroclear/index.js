@@ -11,7 +11,7 @@ puppeteer.use(StealthPlugin());
 
 const startCrawler = async () => {
     try {
-        console.log('Euroclear crawler started');
+        console.log('Euroclear 1 crawler started');
 
         // Init browser
         const browser = await puppeteer.launch({
@@ -132,7 +132,6 @@ const startCrawler = async () => {
         console.log("Economics:", counter7);
         console.log("Business & Communications:", counter8);
         console.log("Other:", counter1);
-        console.log("\nEuroclear crawler completed");
 
         await axios.post(
             'https://topwomen.careers/wp-json/custom/v1/add-company-vacancies',
@@ -144,13 +143,14 @@ const startCrawler = async () => {
             }
         )
 
-        trackMixpanel("Euroclear", totalCards, true);
+        // trackMixpanel("Euroclear", totalCards, true);
+        console.log("\nEuroclear 1 crawler completed");
 
         return responseBody;
 
     } catch (error) {
         console.error('Euroclear crawler error:', error);
-        trackMixpanel("Euroclear", 0, false, error.message);
+        // trackMixpanel("Euroclear", 0, false, error.message);
         throw error;
     }
 }
