@@ -2,9 +2,11 @@ const express = require("express");
 const cron = require("node-cron");
 const cors = require("cors");
 
-const { trackMixpanel } = require("./mixpanel")
+const { trackMixpanel } = require("./mixpanel");
 
-const { startCrawler: euroclearCrawler } = require("./crawlers/euroclear/index");
+const {
+  startCrawler: euroclearCrawler,
+} = require("./crawlers/euroclear/index");
 const { startCrawler: testCrawler } = require("./crawlers/test/index");
 
 const tasks = {};
@@ -20,10 +22,15 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-
 app.get("/crawlers/test", (req, res) => {
   if (!tasks["test"]) {
-    tasks["test"] = cron.schedule("*/5 * * * * *", testCrawler);
+    tasks["test"] = cron.schedule("0 10 * * *", testCrawler, {
+      timezone: "Europe/Brussels",
+    });
+    const currentTime = new Date().toLocaleString("en-US", {
+      timezone: "Europe/Brussels",
+    });
+    console.log(`Task started at ${currentTime} (Brussels time)`);
     console.log("Cron task for test scheduled");
     return res.status(200).json({
       status: "success",
@@ -56,7 +63,9 @@ app.delete("/crawlers/test", (req, res) => {
 
 app.get("/crawlers/euroclear", (req, res) => {
   if (!tasks["euroclear"]) {
-    tasks["euroclear"] = cron.schedule("0 7,18 * * *", euroclearCrawler);
+    tasks["euroclear"] = cron.schedule("0 11,14 * * *", euroclearCrawler, {
+      timezone: "Europe/Brussels",
+    });
     console.log("Cron task for euroclear scheduled");
     return res.status(200).json({
       status: "success",
