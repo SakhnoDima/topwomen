@@ -13,6 +13,7 @@
     "binary-extensions": "^2.3.0",
     "brace-expansion": "^1.1.11",
     "braces": "^3.0.3",
+    "cheerio": "^1.0.0",
     "chokidar": "^3.6.0",
     "concat-map": "^0.0.1",
     "cors": "^2.8.5",
