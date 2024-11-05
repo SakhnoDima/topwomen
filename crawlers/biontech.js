@@ -1,3 +1,62 @@
+import * as cheerio from "cheerio";
+
+async function fetchAllJobResponses(offset = 0) {
+  const baseUrl = "https://jobs.biontech.com/go/All-Jobs/8781301";
+  const queryParams = "?q=&sortColumn=referencedate&sortDirection=desc";
+  const url = `${baseUrl}/${offset}${queryParams}`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Request error: ${response.status}`);
+  }
+
+  return response;
+}
+
 export async function biontechCrawler() {
-  console.log("This is Biontech");
+  let offset = 0;
+  const allJobs = [];
+
+  while (true) {
+    const response = await fetchAllJobResponses(offset);
+
+    const html = await response.text();
+
+    const $ = cheerio.load(html);
+
+    $(".data-row").each((_, element) => {
+      const jobTitle = $(element).find(".jobTitle-link").text().trim();
+      const jobLink = $(element).find(".jobTitle-link").attr("href");
+      const jobLocation = $(element).find(".jobLocation").first().text().trim();
+      const jobDate = $(element).find(".jobDate").first().text().trim();
+
+      const job = {
+        title: jobTitle,
+        url: `https://jobs.biontech.com${jobLink}`,
+        location: jobLocation,
+        sector: null,
+      };
+
+      allJobs.push(job);
+    });
+
+    if ($(".data-row").length < 100) {
+      break;
+    }
+
+    offset += 100;
+  }
+
+  await axios.post(
+    "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
+    JSON.stringify(responseBody),
+    {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  console.log("All vacancies:", allJobs);
 }
