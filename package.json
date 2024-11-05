@@ -3,9 +3,10 @@
     "nodemon": "^3.1.7"
   },
   "name": "topwoman-crawler",
-  "description": "Project that contain vacancies crawler for different sites",
+  "description": "Project that contains vacancies crawler for different sites",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "dependencies": {
     "anymatch": "^3.1.3",
     "axios": "^1.7.7",

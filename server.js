@@ -1,18 +1,14 @@
-const express = require("express");
-const cron = require("node-cron");
-const cors = require("cors");
+import express from "express";
+import cron from "node-cron";
+import cors from "cors";
+import dotenv from "dotenv";
 
-const { trackMixpanel } = require("./mixpanel");
+import tasksRoutes from "./routes/tasks.js";
 
-const {
-  startCrawler: euroclearCrawler,
-} = require("./crawlers/euroclear/index");
-const { startCrawler: testCrawler } = require("./crawlers/test/index");
-
-const tasks = {};
-const PORT = 3000;
+dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 3001;
 
 const corsOptions = {
   origin: "https://topwomen.careers",
@@ -21,6 +17,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(express.json());
+
+app.use("/crawlers", tasksRoutes);
 
 app.get("/crawlers/test", (req, res) => {
   if (!tasks["test"]) {
@@ -63,7 +62,7 @@ app.delete("/crawlers/test", (req, res) => {
 
 app.get("/crawlers/euroclear", (req, res) => {
   if (!tasks["euroclear"]) {
-    tasks["euroclear"] = cron.schedule("0 7,18 * * *", euroclearCrawler, {
+    tasks["euroclear"] = cron.schedule("0 7,18 * * *", foo(), {
       timezone: "Europe/Brussels",
     });
     console.log("Cron task for euroclear scheduled");
