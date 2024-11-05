@@ -63,7 +63,7 @@ app.delete("/crawlers/test", (req, res) => {
 
 app.get("/crawlers/euroclear", (req, res) => {
   if (!tasks["euroclear"]) {
-    tasks["euroclear"] = cron.schedule("0 7,18 * * *", euroclearCrawler, {
+    tasks["euroclear"] = cron.schedule("52 9 * * *", euroclearCrawler, {
       timezone: "Europe/Brussels",
     });
     console.log("Cron task for euroclear scheduled");
