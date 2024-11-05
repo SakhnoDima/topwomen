@@ -1,62 +1,87 @@
 import * as cheerio from "cheerio";
+import {getSector} from "../assistants/sector-switcher.js";
+import axios from "axios";
 
-async function fetchAllJobResponses(offset = 0) {
-  const baseUrl = "https://jobs.biontech.com/go/All-Jobs/8781301";
-  const queryParams = "?q=&sortColumn=referencedate&sortDirection=desc";
-  const url = `${baseUrl}/${offset}${queryParams}`;
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(`Request error: ${response.status}`);
-  }
-
-  return response;
-}
 
 export async function biontechCrawler() {
-  let offset = 0;
-  const allJobs = [];
+    try {
+        console.log("Biontech crawler started");
 
-  while (true) {
-    const response = await fetchAllJobResponses(offset);
+        let limit = 100;
+        let offset = 0;
+        const vacancies = [];
 
-    const html = await response.text();
+        let totalVacancies = 0;
 
-    const $ = cheerio.load(html);
+        while (true) {
+            const response = await fetchAllJobResponses(offset);
 
-    $(".data-row").each((_, element) => {
-      const jobTitle = $(element).find(".jobTitle-link").text().trim();
-      const jobLink = $(element).find(".jobTitle-link").attr("href");
-      const jobLocation = $(element).find(".jobLocation").first().text().trim();
-      const jobDate = $(element).find(".jobDate").first().text().trim();
+            const html = await response.text();
+            const $ = await cheerio.load(html);
 
-      const job = {
-        title: jobTitle,
-        url: `https://jobs.biontech.com${jobLink}`,
-        location: jobLocation,
-        sector: null,
-      };
+            await $(".data-row").each(async (_, element) => {
+                const vacancyTitle = $(element).find(".jobTitle-link").text().trim();
+                const vacancyLink = $(element).find(".jobTitle-link").attr("href");
+                const vacancyLocation = $(element).find(".jobLocation").first().text().trim();
+                const vacancySector = await getSector(vacancyTitle);
 
-      allJobs.push(job);
-    });
+                const vacancyData = {
+                    title: vacancyTitle,
+                    url: `https://jobs.biontech.com${vacancyLink}`,
+                    location: vacancyLocation,
+                    sector: vacancySector,
+                    counter: totalVacancies
+                };
 
-    if ($(".data-row").length < 100) {
-      break;
+                vacancies.push(vacancyData);
+                totalVacancies++;
+            });
+
+            offset += limit;
+
+            if ($(".data-row").length < offset) {
+                break;
+            }
+        }
+
+        let responseBody = {
+            company: "Biontech",
+            vacancies: vacancies,
+        };
+
+        await axios.post(
+            // "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
+            "http://localhost:3001",
+            JSON.stringify(responseBody),
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+
+        // trackMixpanel("Euroclear", totalVacancies, true);
+
+        // console.log("All vacancies:", responseBody, "\n\nTotal:", totalVacancies);
+        console.log("Biontech crawler completed");
+    } catch (error) {
+        console.error("Biontech crawler error:", error);
+        // trackMixpanel("Euroclear", 0, false, error.message);
+        throw error;
+    }
+}
+
+async function fetchAllJobResponses(offset = 0) {
+    const baseUrl = "https://jobs.biontech.com/go/All-Jobs/8781301";
+    const queryParams = "?q=&sortColumn=referencedate&sortDirection=desc";
+    const url = `${baseUrl}/${offset}${queryParams}`;
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+        throw new Error(`Request error: ${response.status}`);
     }
 
-    offset += 100;
-  }
-
-  await axios.post(
-    "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
-    JSON.stringify(responseBody),
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-
-  console.log("All vacancies:", allJobs);
+    return response;
 }
