@@ -4,6 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import tasksRoutes from "./routes/tasks.js";
+import { startCrawler as euroclearCrawler } from "./crawlers/euroclear/index.js";
 
 dotenv.config();
 
@@ -62,7 +63,7 @@ app.delete("/crawlers/test", (req, res) => {
 
 app.get("/crawlers/euroclear", (req, res) => {
   if (!tasks["euroclear"]) {
-    tasks["euroclear"] = cron.schedule("0 7,18 * * *", foo(), {
+    tasks["euroclear"] = cron.schedule("0 7,18 * * *", euroclearCrawler, {
       timezone: "Europe/Brussels",
     });
     console.log("Cron task for euroclear scheduled");
