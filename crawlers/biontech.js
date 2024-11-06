@@ -1,12 +1,13 @@
 import * as cheerio from 'cheerio';
 import { getSector } from '../assistants/sector-switcher.js';
 import axios from 'axios';
+// import { trackMixpanel } from '../mixpanel.js';
+const BATCH_SIZE = 100;
 
-export async function biontechCrawler() {
+export async function fetchingDataFromBiontech() {
     try {
         console.log('Biontech crawler started');
 
-        let limit = 100;
         let offset = 0;
         const vacancies = [];
 
@@ -32,7 +33,7 @@ export async function biontechCrawler() {
                 vacancies.push(vacancyData);
             });
 
-            offset += limit;
+            offset += BATCH_SIZE;
 
             if ($('.data-row').length < offset) {
                 break;
@@ -45,28 +46,23 @@ export async function biontechCrawler() {
         };
 
         console.log(responseBody);
-        // await axios.post(
-        //     // "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
-        //     'http://localhost:3001',
-        //     JSON.stringify(responseBody),
-        //     {
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //     }
-        // );
+        await axios.post('https://topwomen.careers/wp-json/custom/v1/add-company-vacancies', JSON.stringify(responseBody), {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-        trackMixpanel('Euroclear', vacancies.length, true);
+        // trackMixpanel('Euroclear', vacancies.length, true);
 
         console.log('Biontech crawler completed');
     } catch (error) {
         console.error('Biontech crawler error:', error);
-        // trackMixpanel("Euroclear", 0, false, error.message);
+        // trackMixpanel('Euroclear', 0, false, error.message);
         throw error;
     }
 }
 
-biontechCrawler();
+fetchingDataFromBiontech();
 
 async function fetchAllJobResponses(offset = 0) {
     const baseUrl = 'https://jobs.biontech.com/go/All-Jobs/8781301';

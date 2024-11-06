@@ -1,7 +1,7 @@
-import { biontechCrawler } from "./biontech.js";
-import { euroclearCrawler } from "./euroclear.js";
+import { fetchingDataFromBiontech } from './biontech.js';
+import { fetchingDataFromEuroclear } from './euroclear.js';
 
 export const CRAWLERS = {
-  euroclear: euroclearCrawler,
-  biontech: biontechCrawler,
+    euroclear: fetchingDataFromEuroclear,
+    biontech: fetchingDataFromBiontech,
 };

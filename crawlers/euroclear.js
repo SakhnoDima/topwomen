@@ -3,8 +3,7 @@ import axios from 'axios';
 import { getSector } from '../assistants/sector-switcher.js';
 const BATCH_SIZE = 100;
 
-// rename function euroclearCrawler to fetchingDataFromEuroclear
-export async function euroclearCrawler() {
+export async function fetchingDataFromEuroclear() {
     try {
         console.log('Euroclear crawler started');
 
@@ -52,4 +51,4 @@ export async function euroclearCrawler() {
     }
 }
 
-euroclearCrawler();
+fetchingDataFromEuroclear();
