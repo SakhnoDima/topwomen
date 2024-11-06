@@ -1,15 +1,15 @@
-const puppeteer = require("puppeteer-extra");
-const StealthPlugin = require("puppeteer-extra-plugin-stealth");
-const axios = require("axios");
+import puppeteer from "puppeteer-extra";
+import dotenv from "dotenv";
+import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import axios from "axios";
 
-const { delayer, scrollToElement } = require("./../../assistants/helpers");
-const { getSector } = require("./../../assistants/sector-switcher");
-const { trackMixpanel } = require("../../mixpanel");
+import { delayer, scrollToElement } from "./../../assistants/helpers.js";
+import { getSector } from "./../../assistants/sector-switcher.js";
+import { trackMixpanel } from "../../mixpanel.js";
 
-require("dotenv").config();
-puppeteer.use(StealthPlugin());
+dotenv.config();
 
-const startCrawler = async () => {
+export const startCrawler = async () => {
   try {
     console.log("Euroclear crawler started");
     const currentTime = new Date().toLocaleString("en-US", {
@@ -187,8 +187,4 @@ const waitForNewCards = async (page, beforeCards) => {
     console.error("Wait new cards error:", error.message);
     throw error;
   }
-};
-
-module.exports = {
-  startCrawler,
 };

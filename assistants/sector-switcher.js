@@ -1,4 +1,4 @@
-const getSector = async (vacancyTitle) => {
+export const getSector = async (vacancyTitle) => {
     const title = vacancyTitle.toLowerCase();
 
     const keywords = {
@@ -74,8 +74,4 @@ const getSector = async (vacancyTitle) => {
     }
 
     return matchedCategory;
-}
-
-module.exports = {
-    getSector
 }
