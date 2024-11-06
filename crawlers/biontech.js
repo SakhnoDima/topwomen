@@ -2,7 +2,16 @@ import * as cheerio from 'cheerio';
 import { getSector } from '../assistants/sector-switcher.js';
 import axios from 'axios';
 // import { trackMixpanel } from '../mixpanel.js';
+import { getName } from 'country-list';
 const BATCH_SIZE = 100;
+
+function getValidCountryCodes(locationString) {
+    const countryCodeMatches = locationString.match(/,\s*([A-Z]{2})\s*(?=,|\s|$)/g);
+    const extractedCodes = countryCodeMatches.map((code) => code.match(/[A-Z]{2}/)[0]);
+    const validCodes = extractedCodes.filter((code) => getName(code) !== undefined);
+
+    return validCodes;
+}
 
 export async function fetchingDataFromBiontech() {
     try {
@@ -23,10 +32,12 @@ export async function fetchingDataFromBiontech() {
                 const vacancyLocation = $(element).find('.jobLocation').first().text().trim();
                 const vacancySector = await getSector(vacancyTitle);
 
+                const [countryCode] = getValidCountryCodes(vacancyLocation);
+
                 const vacancyData = {
                     title: vacancyTitle,
                     sector: vacancySector,
-                    location: vacancyLocation,
+                    location: getName(countryCode),
                     url: `https://jobs.biontech.com${vacancyLink}`,
                 };
 
@@ -45,7 +56,6 @@ export async function fetchingDataFromBiontech() {
             vacancies: vacancies,
         };
 
-        console.log(responseBody);
         await axios.post('https://topwomen.careers/wp-json/custom/v1/add-company-vacancies', JSON.stringify(responseBody), {
             headers: {
                 'Content-Type': 'application/json',
