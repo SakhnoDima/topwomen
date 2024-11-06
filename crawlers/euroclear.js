@@ -1,77 +1,55 @@
-import axios from "axios";
-// import { trackMixpanel } from "../../mixpanel.js";
+import axios from 'axios';
+// import { trackMixpanel } from '../mixpanel.js';
+import { getSector } from '../assistants/sector-switcher.js';
+const BATCH_SIZE = 100;
 
-import {getSector} from "../assistants/sector-switcher.js";
-
+// rename function euroclearCrawler to fetchingDataFromEuroclear
 export async function euroclearCrawler() {
     try {
-        console.log("Euroclear crawler started");
+        console.log('Euroclear crawler started');
 
-        let limit = 100;
         let offset = 0;
         const vacancies = [];
 
-        let totalVacancies = 0;
-
         while (true) {
-            const response = await axios.get(
-                `https://don.fa.em2.oraclecloud.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions?onlyData=true&expand=requisitionList.secondaryLocations,flexFieldsFacet.values,requisitionList.requisitionFlexFields&finder=findReqs;siteNumber=CX_1003,facetsList=LOCATIONS%3BWORK_LOCATIONS%3BWORKPLACE_TYPES%3BTITLES%3BCATEGORIES%3BORGANIZATIONS%3BPOSTING_DATES%3BFLEX_FIELDS,limit=${limit},sortBy=POSTING_DATES_DESC,offset=${offset}`
-            );
+            const response = await axios.get(`https://don.fa.em2.oraclecloud.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions?onlyData=true&expand=requisitionList.secondaryLocations,flexFieldsFacet.values,requisitionList.requisitionFlexFields&finder=findReqs;siteNumber=CX_1003,facetsList=LOCATIONS%3BWORK_LOCATIONS%3BWORKPLACE_TYPES%3BTITLES%3BCATEGORIES%3BORGANIZATIONS%3BPOSTING_DATES%3BFLEX_FIELDS,limit=${BATCH_SIZE},sortBy=POSTING_DATES_DESC,offset=${offset}`);
             const data = response.data;
 
-            const vacancyList = data.items[0].requisitionList;
+            if (data.items[0].requisitionList.length === 0) break;
 
-            if (!vacancyList || vacancyList.length === 0) {
-                break;
-            }
+            vacancies.push(
+                ...(await Promise.all(
+                    data.items[0].requisitionList.map(async ({ Title, PrimaryLocation, Id }) => ({
+                        title: Title,
+                        sector: await getSector(Title),
+                        location: PrimaryLocation,
+                        url: `https://don.fa.em2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1003/job/${Id}`,
+                    }))
+                ))
+            );
 
-            for (const req of vacancyList) {
-                const sector = await getSector(req.Title);
-
-                const vacancyData = {
-                    title: req.Title,
-                    sector: sector,
-                    location: req.PrimaryLocation,
-                    url: `https://don.fa.em2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1003/job/${req.Id}`,
-                };
-
-                vacancies.push(vacancyData);
-                totalVacancies++;
-            }
-
-            offset += limit;
-
-            if (vacancyList.length < offset) {
-                break;
-            }
+            offset += BATCH_SIZE;
         }
 
-        let responseBody = {
-            company: "Euroclear",
+        const responseBody = {
+            company: 'Euroclear',
             vacancies: vacancies,
         };
 
-        await axios.post(
-            // "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
-            "http://localhost:3001",
-            JSON.stringify(responseBody),
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            }
-        );
+        console.log(responseBody);
+        await axios.post('https://topwomen.careers/wp-json/custom/v1/add-company-vacancies', JSON.stringify(responseBody), {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
 
-
-        // trackMixpanel("Euroclear", totalVacancies, true);
-
-        // console.log("All vacancies:", responseBody, "\n\nTotal:", totalVacancies);
-        console.log("Euroclear crawler completed");
+        // trackMixpanel('Euroclear', vacancies.length, true);
+        console.log('Euroclear crawler completed');
     } catch (error) {
-        console.error("Euroclear crawler error:", error);
-        // trackMixpanel("Euroclear", 0, false, error.message);
+        // trackMixpanel('Euroclear', 0, false, error.message);
+        console.error('Euroclear crawler error:', error);
         throw error;
     }
 }
 
-euroclearCrawler()
+euroclearCrawler();
