@@ -6,6 +6,7 @@ const taskScheduler = new TaskSchedulerService();
 
 export const addTask = (req, res) => {
   const { taskName } = req.body;
+  console.log(req.body);
 
   if (!CRAWLERS[taskName]) {
     return res.status(400).json({
