@@ -83,7 +83,6 @@ export async function fetchingDataFromBiontech() {
   } catch (error) {
     console.error("Biontech crawler error:", error);
     trackMixpanel("Biontech", 0, false, error.message);
-    throw error;
   }
 }
 

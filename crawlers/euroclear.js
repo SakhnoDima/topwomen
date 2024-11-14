@@ -55,6 +55,5 @@ export async function fetchingDataFromEuroclear() {
   } catch (error) {
     trackMixpanel("Euroclear", 0, false, error.message);
     console.error("Euroclear crawler error:", error);
-    throw error;
   }
 }
