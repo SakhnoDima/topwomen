@@ -48,6 +48,7 @@ export async function fetchingDataFromHilti() {
         .get();
 
       const vacancyResults = await Promise.all(vacancyPromises);
+
       vacancies.push(...vacancyResults);
       page += 1;
 
@@ -57,11 +58,9 @@ export async function fetchingDataFromHilti() {
     }
 
     let responseBody = {
-      company: "Hilty",
+      company: "Hilti",
       vacancies: vacancies,
     };
-
-    console.log(responseBody);
 
     await axios.post(
       "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
@@ -87,7 +86,6 @@ async function fetchAllJobResponses(page) {
   const baseUrl = "https://careers.hilti.group/en/jobs";
   const queryParams = `?page=${page}#results`;
   const url = `${baseUrl}/${queryParams}`;
-  console.log(url);
 
   try {
     const response = await axios.get(url, {
