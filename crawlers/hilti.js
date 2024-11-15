@@ -73,12 +73,12 @@ export async function fetchingDataFromHilti() {
       }
     );
 
-    trackMixpanel("Hilti-test", vacancies.length, true);
+    trackMixpanel("Hilti", vacancies.length, true);
 
     console.log("Hilti crawler completed", vacancies.length);
   } catch (error) {
     console.error("Hilti crawler error:", error);
-    trackMixpanel("Hilti-test", 0, false, error.message);
+    trackMixpanel("Hilti", 0, false, error.message);
   }
 }
 
