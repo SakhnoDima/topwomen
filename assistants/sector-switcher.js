@@ -18,8 +18,8 @@ export const getSector = async (vacancyTitle) => {
             "investigation", "evidence", "ethics", "advocate", "corporate governance", "claims", "dispute resolution"
         ],
         "Sales": [
-            "sales", "salesperson", "retail", "crm", "lead generation", "account manager", "business development",
-            "negotiator", "sales manager", "sales executive", "client manager", "merchandising", "customer success",
+            "sales", "salesperson", "retail", "crm", "lead generation", "account manager", "business development", "merchandiser",
+            "negotiator", "sales manager", "sales executive", "client manager", "merchandising", "customer success", "order",
             "closer", "territory manager", "prospecting", "inside sales", "outside sales", "b2b", "sales consultant",
             "relationship manager", "pipeline", "closing", "quota", "channel sales", "deal", "target", "sales representative",
             "revenue", "salesforce", "customer acquisition", "upselling", "cross-selling", "sales performance", "business growth"
