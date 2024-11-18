@@ -1,142 +1,83 @@
-import puppeteer from "puppeteer-extra";
+import axios from "axios";
+import countries from 'i18n-iso-countries';
+
 import { trackMixpanel } from "../mixpanel.js";
 import { getSector } from "../assistants/sector-switcher.js";
-import { delayer } from "../assistants/helpers.js";
-import axios from "axios";
+
 
 export async function fetchingDataFromMondelez() {
-  console.log("Mondelez crawler started");
+    console.log("Mondelez crawler started");
 
-  // Init browser
-  const browser = await puppeteer.launch({
-    headless: false,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-      "--window-size=1440,760",
-    ],
-  });
+    let page = 0;
+    const vacancies = [];
+    try {
+        while (true) {
+            const response = await axios.post(
+                `https://qdcqk4bj5r-dsn.algolia.net/1/indexes/Mondelezinternational_en_joblist_jobposting_start_date_desc/query`,
+                {
+                    "page": page,
+                    "hitsPerPage": 20,
+                },
+                {
+                    headers: {
+                        'x-algolia-agent': 'Algolia for JavaScript (4.14.2); Browser',
+                        'x-algolia-api-key': '16bdb752874a297d588b7ecf53cb2aa9',
+                        'x-algolia-application-id': 'QDCQK4BJ5R',
+                    },
+                }
+            );
+            const data = response.data;
 
-  // Init page
-  const [page] = await browser.pages();
-  await page.setViewport({
-    width: 1440,
-    height: 760,
-    deviceScaleFactor: 1,
-  });
+            if (data.hits.length === 0) break;
 
-  let pageCounter = 1;
-  const vacancies = [];
-  try {
-    await page.goto(
-      `https://www.mondelezinternational.com/careers/jobs?term=&page=${pageCounter}`
-    );
+            for (let i = 0; i < data.hits.length; i++) {
+                const title = data.hits[i].Job_Posting_Title[0] || null;
+                const sector = await getSector(data.hits[i].Job_Posting_Title?.[0]) || null;
+                const location = await convertLocation(data.hits[i].Job_Posting_Location_Data?.[0].Primary_Location_Reference?.[0]) || null;
+                const url = `https://www.mondelezinternational.com/careers/jobs/job?jobid=${data.hits[i].Job_Requisition_ID?.[0]}` || null;
 
-    // Wait loading elements
-    await delayer(500);
-    await page.waitForSelector("li.pagination-item.event_button_click");
-    await delayer(500);
+                if (title && location && url) {
+                    vacancies.push({
+                        title: title,
+                        sector: sector,
+                        location: location,
+                        url: url,
+                    });
+                }
+            }
 
-    let pageCounterMax = 0;
-    const elements = await page.$$("li.pagination-item.event_button_click");
-    for (const element of elements) {
-      const ariaLabel = await element.evaluate((el) =>
-        el.getAttribute("aria-label")
-      );
-      const numericValue = parseInt(ariaLabel, 10);
-      if (numericValue > pageCounterMax) {
-        pageCounterMax = numericValue;
-      }
-    }
-
-    console.log(pageCounterMax);
-
-    while (pageCounter < pageCounterMax) {
-      const allVacancies = await page.$$(".resultRenderContainer div");
-
-      for (let i = 0; i < allVacancies.length; i++) {
-        const element = allVacancies[i];
-
-        const vacancyTitle = await element.$eval("a", (el) =>
-          el.textContent.trim()
-        );
-        const vacancyId = await element.$$eval("p", (elements) =>
-          elements
-            .map((p) => p.textContent.trim())
-            .find((text) => /R-\d{6}/.test(text))
-        );
-        const jobLocation = await element.$$eval("p a", (links) =>
-          Array.from(links)
-            .map((link) => link.textContent.trim())
-            .pop()
-        );
-
-        if (vacancyTitle && vacancyId && jobLocation) {
-          const vacancySector = await getSector(vacancyTitle);
-          const jobCountry = await extractCountry(jobLocation);
-          const vacancyLink = `https://hourlyjobs-us.mondelezinternational.com/job-reference/${await extractId(
-            vacancyId
-          )}`;
-
-          if (vacancySector && jobCountry && vacancyLink) {
-            vacancies.push({
-              vacancyTitle,
-              vacancySector,
-              vacancyLink,
-              jobCountry,
-            });
-          }
+            page++;
         }
-      }
 
-      pageCounter++;
+        const responseBody = {
+            company: "Mondelez International",
+            vacancies: vacancies,
+        };
 
-      await page.goto(
-        `https://www.mondelezinternational.com/careers/jobs?term=&page=${pageCounter}`
-      );
+        console.log("Total vacancies in Mondelez", vacancies.length);
+        await axios.post(
+            "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
+            JSON.stringify(responseBody),
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        );
 
-      await delayer(500);
-      await page.waitForSelector("div.resultRenderContainer");
-      await delayer(500);
+        trackMixpanel("Mondelez International", vacancies.length, true);
+        console.log("Mondelez crawler completed");
+    } catch (error) {
+        trackMixpanel("Mondelez International", 0, false, error.message);
+        console.error("Mondelez crawler error:", error);
     }
-
-    const responseBody = {
-      company: "Mondelez",
-      vacancies: vacancies,
-    };
-
-    console.log("Total vacancies in Mondelez", vacancies.length);
-    // await axios.post(
-    //     "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
-    //     JSON.stringify(responseBody),
-    //     {
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //         },
-    //     }
-    // );
-
-    // trackMixpanel("Mondelez", vacancies.length, true);
-    console.log("Mondelez crawler completed");
-  } catch (error) {
-    // trackMixpanel("Mondelez", 0, false, error.message);
-    console.error("Mondelez crawler error:", error);
-  } finally {
-    console.log(vacancies, vacancies.length);
-    await browser.close();
-  }
 }
 
-const extractCountry = (text) => {
-  const regex = /(?:,\s*[^,]+)?\s*,\s*([A-Za-z\s]+)$/;
-  const match = text.match(regex);
-  return match ? match[1].trim() : null;
+const convertLocation = (code) => {
+    if (!code) return null;
+    const countryCode = code.slice(0, 2);
+    const countryName = countries.getName(countryCode, "en");
+    return countryName || null;
 };
 
-const extractId = (text) => {
-  const regex = /R-\d{6}/;
-  const match = text.match(regex);
-  return match ? match[0].trim() : null;
-};
+fetchingDataFromMondelez()

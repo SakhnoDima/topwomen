@@ -8,6 +8,6 @@ export const CRAWLERS = {
   euroclear: fetchingDataFromEuroclear,
   biontech: fetchingDataFromBiontech,
   hilti: fetchingDataFromHilti,
+  mondelez: fetchingDataFromMondelez,
   vinci: fetchingDataFromVinci,
-  // mondelezinternational: fetchingDataFromMondelez,
 };
