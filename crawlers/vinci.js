@@ -106,4 +106,3 @@ async function fetchAllJobResponses(page, offset) {
     throw new Error(`Request error: ${error.message}`);
   }
 }
-fetchingDataFromVinci();
