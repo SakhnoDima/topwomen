@@ -2,8 +2,6 @@ import * as cheerio from "cheerio";
 import { getSector } from "../assistants/sector-switcher.js";
 import { trackMixpanel } from "../mixpanel.js";
 import axios from "axios";
-import { response } from "express";
-import { error } from "console";
 import { delayer } from "../assistants/helpers.js";
 
 export async function fetchingDataFromVinci() {
@@ -122,11 +120,10 @@ async function fetchAllJobResponses(page, offset) {
         "Sec-Fetch-Mode": "navigate",
         "Sec-Fetch-User": "?1",
         "Sec-Fetch-Dest": "document",
-        DNT: "1", // Do Not Track
-        "X-Requested-With": "XMLHttpRequest", // Imitate AJAX request
+        DNT: "1",
+        "X-Requested-With": "XMLHttpRequest",
       },
     });
-    console.log(response.data.results);
 
     return response.data.results;
   } catch (error) {
