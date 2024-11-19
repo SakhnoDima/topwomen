@@ -7,6 +7,7 @@ import { delayer, scrollToElement } from "./../../assistants/helpers.js";
 import { getSector } from "./../../assistants/sector-switcher.js";
 import { trackMixpanel } from "../../mixpanel.js";
 
+puppeteer.use(StealthPlugin());
 dotenv.config();
 
 export const startCrawler = async () => {
@@ -18,7 +19,7 @@ export const startCrawler = async () => {
     console.log(`Task started at ${currentTime} (Brussels time)`);
     // Init browser
     const browser = await puppeteer.launch({
-      headless: true,
+      headless: false,
       args: [
         "--no-sandbox",
         "--disable-setuid-sandbox",

@@ -1,5 +1,4 @@
 import axios from "axios";
-import countries from "i18n-iso-countries";
 import { getName } from "country-list";
 import { trackMixpanel } from "../mixpanel.js";
 import { getSector } from "../assistants/sector-switcher.js";
@@ -31,23 +30,10 @@ export async function fetchingDataFromMondelez() {
 
       for (let i = 0; i < data.hits.length; i++) {
         const title = data.hits[i].Job_Posting_Title[0] || null;
-        const sector =
-          (await getSector(data.hits[i].Job_Posting_Title?.[0])) || null;
-
-        const countryCode = data.hits[i].countryCode
-          ? data.hits[i].countryCode
-          : data.hits[
-              i
-            ].Job_Posting_Location_Data?.[0].Primary_Location_Reference?.[0].substring(
-              0,
-              2
-            );
-
+        const sector =(await getSector(data.hits[i].Job_Posting_Title?.[0])) || null;
+        const countryCode = data.hits[i].countryCode ? data.hits[i].countryCode : data.hits[i].Job_Posting_Location_Data?.[0].Primary_Location_Reference?.[0].substring(0, 2);
         const location = getName(`${countryCode}`);
-
-        const url =
-          `https://www.mondelezinternational.com/careers/jobs/job?jobid=${data.hits[i].Job_Requisition_ID?.[0]}` ||
-          null;
+        const url = `https://www.mondelezinternational.com/careers/jobs/job?jobid=${data.hits[i].Job_Requisition_ID?.[0]}` || null;
 
         if (title && location && url) {
           vacancies.push({
@@ -68,8 +54,7 @@ export async function fetchingDataFromMondelez() {
     };
 
     console.log("Total vacancies in Mondelez", vacancies.length);
-    axios
-      .post(
+    axios.post(
         "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
         JSON.stringify(responseBody),
         {
@@ -91,10 +76,3 @@ export async function fetchingDataFromMondelez() {
     console.error("Mondelez crawler error:", error);
   }
 }
-
-const convertLocation = (code) => {
-  if (!code) return null;
-  const countryCode = code.slice(0, 2);
-  const countryName = countries.getName(countryCode, "en");
-  return countryName || null;
-};
