@@ -2,6 +2,8 @@ import * as cheerio from "cheerio";
 import { getSector } from "../assistants/sector-switcher.js";
 import { trackMixpanel } from "../mixpanel.js";
 import axios from "axios";
+import { response } from "express";
+import { error } from "console";
 
 export async function fetchingDataFromVinci() {
   try {
@@ -69,18 +71,25 @@ export async function fetchingDataFromVinci() {
       vacancies: vacancies,
     };
 
-    await axios.post(
-      "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
-      JSON.stringify(responseBody),
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
     console.log("Total vacancies in Vinci", vacancies.length);
-    trackMixpanel("Vinci", vacancies.length, true);
+    axios
+      .post(
+        "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
+        JSON.stringify(responseBody),
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
+      .then((response) => {
+        console.log("Vinci vacancies saved!");
+        trackMixpanel("Vinci", vacancies.length, true);
+      })
+      .catch((error) => {
+        console.log("Error", error.message);
+        throw Error(error.message);
+      });
   } catch (error) {
     console.error("Vinci crawler error:", error);
     trackMixpanel("Vinci", 0, false, error.message);
@@ -99,6 +108,7 @@ async function fetchAllJobResponses(page, offset) {
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
         "Cache-Control": "no-cache",
       },
+      timeout: 10000,
     });
 
     return response.data.results;
