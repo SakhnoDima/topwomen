@@ -80,7 +80,7 @@ export async function fetchingDataFromMondelez() {
       )
       .then((response) => {
         console.log("Mondelez vacancies saved!");
-        trackMixpanel("Mondelez", vacancies.length, true);
+        trackMixpanel("Mondelez International", vacancies.length, true);
       })
       .catch((error) => {
         console.log("Error", error.message);
@@ -98,5 +98,3 @@ const convertLocation = (code) => {
   const countryName = countries.getName(countryCode, "en");
   return countryName || null;
 };
-
-fetchingDataFromMondelez();

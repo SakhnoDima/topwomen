@@ -4,6 +4,7 @@ import { trackMixpanel } from "../mixpanel.js";
 import axios from "axios";
 import { response } from "express";
 import { error } from "console";
+import { delayer } from "../assistants/helpers.js";
 
 export async function fetchingDataFromVinci() {
   try {
@@ -59,6 +60,7 @@ export async function fetchingDataFromVinci() {
 
       console.log(`Page ${page} processed, vacancies found: ${results.length}`);
       page++;
+      delayer(1000);
 
       if (results.length < offset) {
         console.log("Stop crawling - fewer vacancies than offset.");
