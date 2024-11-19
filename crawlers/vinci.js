@@ -108,9 +108,25 @@ async function fetchAllJobResponses(page, offset) {
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Accept-Language": "en-US,en;q=0.9",
         "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        TE: "Trailers",
+        Referer: "https://jobs.vinci.com/en/search-jobs",
+        Origin: "https://jobs.vinci.com",
+        "Sec-Fetch-Site": "same-origin",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-User": "?1",
+        "Sec-Fetch-Dest": "document",
+        DNT: "1", // Do Not Track
+        "X-Requested-With": "XMLHttpRequest", // Imitate AJAX request
       },
     });
+    console.log(response.data.results);
 
     return response.data.results;
   } catch (error) {
