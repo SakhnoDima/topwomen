@@ -66,7 +66,7 @@ export async function fetchingDataEuInvBank() {
         title,
         sector,
         location,
-        link,
+        url: link,
       });
     }
 
