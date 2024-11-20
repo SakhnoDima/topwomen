@@ -30,10 +30,20 @@ export async function fetchingDataFromMondelez() {
 
       for (let i = 0; i < data.hits.length; i++) {
         const title = data.hits[i].Job_Posting_Title[0] || null;
-        const sector =(await getSector(data.hits[i].Job_Posting_Title?.[0])) || null;
-        const countryCode = data.hits[i].countryCode ? data.hits[i].countryCode : data.hits[i].Job_Posting_Location_Data?.[0].Primary_Location_Reference?.[0].substring(0, 2);
+        const sector =
+          (await getSector(data.hits[i].Job_Posting_Title?.[0])) || null;
+        const countryCode = data.hits[i].countryCode
+          ? data.hits[i].countryCode
+          : data.hits[
+              i
+            ].Job_Posting_Location_Data?.[0].Primary_Location_Reference?.[0].substring(
+              0,
+              2
+            );
         const location = getName(`${countryCode}`);
-        const url = `https://www.mondelezinternational.com/careers/jobs/job?jobid=${data.hits[i].Job_Requisition_ID?.[0]}` || null;
+        const url =
+          `https://www.mondelezinternational.com/careers/jobs/job?jobid=${data.hits[i].Job_Requisition_ID?.[0]}` ||
+          null;
 
         if (title && location && url) {
           vacancies.push({
@@ -49,12 +59,13 @@ export async function fetchingDataFromMondelez() {
     }
 
     const responseBody = {
-      company: "Mondelez-International",
+      company: "Mondelez International",
       vacancies: vacancies,
     };
 
-    console.log("Total vacancies in Mondelez", vacancies.length);
-    axios.post(
+    console.log("Total vacancies in Mondelez International", vacancies.length);
+    axios
+      .post(
         "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
         JSON.stringify(responseBody),
         {

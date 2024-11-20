@@ -6,10 +6,10 @@ import { fetchingDataFromVinci } from "./vinci.js";
 import { fetchingDataEuInvBank } from "./euInvestBank.js";
 
 export const CRAWLERS = {
-  "euroclear": fetchingDataFromEuroclear,
-  "biontech": fetchingDataFromBiontech,
-  "hilti": fetchingDataFromHilti,
-  "mondelez-international": fetchingDataFromMondelez,
-  "vinci": fetchingDataFromVinci,
-  "eu-invest-bank": fetchingDataEuInvBank,
+  euroclear: fetchingDataFromEuroclear,
+  biontech: fetchingDataFromBiontech,
+  hilti: fetchingDataFromHilti,
+  "mondelez international": fetchingDataFromMondelez,
+  vinci: fetchingDataFromVinci,
+  "european investment bank": fetchingDataEuInvBank,
 };
