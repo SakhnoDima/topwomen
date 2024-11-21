@@ -3,6 +3,7 @@ import { getSector } from "../assistants/sector-switcher.js";
 import { trackMixpanel } from "../mixpanel.js";
 import axios from "axios";
 import { delayer } from "../assistants/helpers.js";
+import { dataSaver } from "../controllers/dataControllers.js";
 
 export async function fetchingDataFromVinci() {
   try {

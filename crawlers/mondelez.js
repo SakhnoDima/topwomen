@@ -2,6 +2,7 @@ import axios from "axios";
 import { getName } from "country-list";
 import { trackMixpanel } from "../mixpanel.js";
 import { getSector } from "../assistants/sector-switcher.js";
+import { dataSaver } from "../controllers/dataControllers.js";
 
 export async function fetchingDataFromMondelez() {
   console.log("Mondelez crawler started");
