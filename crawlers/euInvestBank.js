@@ -15,7 +15,7 @@ dotenv.config();
 export async function fetchingDataEuInvBank() {
   console.log("European-Investment-Bank crawler started");
   const browser = await puppeteer.launch({
-    headless: "new",
+    headless: false,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -32,6 +32,8 @@ export async function fetchingDataEuInvBank() {
     deviceScaleFactor: 1,
   });
 
+  const vacancies = [];
+
   try {
     await page.goto(
       "https://erecruitment.eib.org/psc/hr/EIBJOBS/CAREERS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?Page=HRS_APP_SCHJOB_FL&Action=U",
@@ -40,34 +42,48 @@ export async function fetchingDataEuInvBank() {
       }
     );
 
-    const clickUntilHidden = async () => {
-      let isVisible = true;
-      let click = 0;
-      while (isVisible) {
-        try {
-          isVisible = await page.$eval(".ps_box-more", (el) => el !== null);
-          if (isVisible) {
-            await page.click(".ps_box-more");
-            click++;
-            await delayer(1000);
-          }
-        } catch (error) {
-          isVisible = false;
-        }
-      }
-    };
-    await clickUntilHidden();
-
-    const vacancies = [];
+    // const clickUntilHidden = async () => {
+    //   let isVisible = true;
+    //   let click = 0;
+    //   while (isVisible) {
+    //     try {
+    //       isVisible = await page.$eval(".ps_box-more", (el) => el !== null);
+    //       if (isVisible) {
+    //         await page.click(".ps_box-more");
+    //         click++;
+    //         await delayer(1000);
+    //       }
+    //     } catch (error) {
+    //       isVisible = false;
+    //     }
+    //   }
+    // };
+    // await clickUntilHidden();
 
     const jobElements = await page.$$("li.ps_grid-row.psc_rowact");
+    let { id, idOld } = await jobElements[0].$eval(
+      'span[id*="HRS_APP_JBSCH_I_HRS_JOB_OPENING_ID"]',
+      (el) => el.textContent.trim()
+    );
+    await jobElements[0].click();
 
-    for (const element of jobElements) {
-      const title = await element.$eval('span[id*="SCH_JOB_TITLE"]', (el) =>
+    let counter = 1;
+
+    while (true) {
+      while (idOld === id) {
+        const idElement = await page.$('span[id="HRS_SCH_WRK2_HRS_JOB_OPENING_ID"]')
+        if (idElement) {
+           id = await idElement.evaluate((el) =>
+              el.textContent.trim()
+          );
+        }
+        await delayer(200);
+      }
+
+      const title = await page.$eval('h1[id="PT_PAGETITLE"]', (el) =>
         el.textContent.trim()
       );
-
-      const locationText = await element.$eval('span[id*="LOCATION"]', (el) =>
+      const locationText = await page.$eval('span[id*="HRS_SCH_WRK_HRS_DESCRLONG"]', (el) =>
         el.textContent.trim()
       );
       const countryCode = locationText
@@ -75,28 +91,77 @@ export async function fetchingDataEuInvBank() {
         .map((part) => part.trim())
         .shift();
       const location = await getName(countryCode);
-
       const sector = await getSector(title);
 
-      const id = await element.$eval(
-        'span[id*="HRS_APP_JBSCH_I_HRS_JOB_OPENING_ID"]',
-        (el) => el.textContent.trim()
+      const shareBtn = await page.$('a[id*="HRS_SCH_WRK_HRS_CE_EML_FRND"]');
+      await shareBtn.click();
+
+      await page.waitForSelector('iframe[title="Careers Popup window"]');
+      const iframeElement = await page.$('iframe[title="Careers Popup window"]');
+      const iframe = await iframeElement.contentFrame();
+
+      const shareMessage = await iframe.$eval('span[id="HRS_EMLFRND_WRK_HRS_CRSP_MSG"]', (el) =>
+          el.textContent.trim()
       );
-      const link = `https://erecruitment.eib.org/psp/hr/EIBJOBS/CAREERS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?Page=HRS_APP_JBPST_FL&Action=U&FOCUS=Applicant&SiteId=1&JobOpeningId=${id}&PostingSeq=2`;
+      console.log(shareMessage)
+      let link = (shareMessage.match(/https?:\/\/[^\s]+/g))[0].trim().replace(/Thank$/, '');
+      console.log("\n\n", link);
+
+      const shareCloseBtn = await iframe.$('a[id="HRS_APPL_WRK_HRS_CANCEL_BTN"]');
+      await shareCloseBtn.click();
+      await delayer(600);
 
       vacancies.push({
         title,
         sector,
         location,
-        url: link,
+        link
       });
-    }
 
-    dataSaver("European Investment Bank", vacancies);
+      const nextPageBtn = await page.$('a[id="DERIVED_HRS_FLU_HRS_NEXT_PB"]');
+      if (await nextPageBtn.evaluate((el) => el.getAttribute("disabled")) === "disabled") {
+        break;
+      }
+      await nextPageBtn.click();
+      idOld = id;
+      counter++;
+    }
+    // for (const element of jobElements) {
+    //   const title = await element.$eval('span[id*="SCH_JOB_TITLE"]', (el) =>
+    //     el.textContent.trim()
+    //   );
+    //
+    //   const locationText = await element.$eval('span[id*="LOCATION"]', (el) =>
+    //     el.textContent.trim()
+    //   );
+    //   const countryCode = locationText
+    //     .split(" - ")
+    //     .map((part) => part.trim())
+    //     .shift();
+    //   const location = await getName(countryCode);
+    //
+    //   const sector = await getSector(title);
+    //
+    //   const id = await element.$eval(
+    //     'span[id*="HRS_APP_JBSCH_I_HRS_JOB_OPENING_ID"]',
+    //     (el) => el.textContent.trim()
+    //   );
+    //   const link = `https://erecruitment.eib.org/psp/hr/EIBJOBS/CAREERS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?Page=HRS_APP_JBPST_FL&Action=U&FOCUS=Applicant&SiteId=1&JobOpeningId=${id}&PostingSeq=2`;
+    //
+    //   vacancies.push({
+    //     title,
+    //     sector,
+    //     location,
+    //     url: link,
+    //   });
+    // }
+
+    await dataSaver("European Investment Bank", vacancies);
   } catch (error) {
-    trackMixpanel("EuInvestBank International", 0, false, error.message);
+    await trackMixpanel("EuInvestBank International", 0, false, error.message);
     console.error("European-Investment-Bank crawler error:", error);
   } finally {
     await browser.close();
+    console.log(vacancies)
   }
 }
