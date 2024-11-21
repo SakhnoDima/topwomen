@@ -65,31 +65,7 @@ export async function fetchingDataFromVinci() {
         break;
       }
     }
-
-    let responseBody = {
-      company: "Vinci",
-      vacancies: vacancies,
-    };
-
-    console.log("Total vacancies in Vinci", vacancies.length);
-    axios
-      .post(
-        "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
-        JSON.stringify(responseBody),
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
-      .then((response) => {
-        console.log("Vinci vacancies saved!");
-        trackMixpanel("Vinci", vacancies.length, true);
-      })
-      .catch((error) => {
-        console.log("Error", error.message);
-        throw Error(error.message);
-      });
+    dataSaver("Vinci", vacancies);
   } catch (error) {
     console.error("Vinci crawler error:", error);
     trackMixpanel("Vinci", 0, false, error.message);

@@ -17,7 +17,7 @@ export const startCrawler = async () => {
       timezone: "Europe/Brussels",
     });
     console.log(`Task started at ${currentTime} (Brussels time)`);
-    // Init browser
+
     const browser = await puppeteer.launch({
       headless: false,
       args: [

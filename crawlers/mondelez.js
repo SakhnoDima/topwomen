@@ -58,30 +58,7 @@ export async function fetchingDataFromMondelez() {
       page++;
     }
 
-    const responseBody = {
-      company: "Mondelez International",
-      vacancies: vacancies,
-    };
-
-    console.log("Total vacancies in Mondelez International", vacancies.length);
-    axios
-      .post(
-        "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
-        JSON.stringify(responseBody),
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
-      .then((response) => {
-        console.log("Mondelez vacancies saved!");
-        trackMixpanel("Mondelez International", vacancies.length, true);
-      })
-      .catch((error) => {
-        console.log("Error", error.message);
-        throw Error(error.message);
-      });
+    dataSaver("Mondelez International", vacancies);
   } catch (error) {
     trackMixpanel("Mondelez International", 0, false, error.message);
     console.error("Mondelez crawler error:", error);

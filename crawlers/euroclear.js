@@ -1,6 +1,7 @@
 import axios from "axios";
 import { trackMixpanel } from "../mixpanel.js";
 import { getSector } from "../assistants/sector-switcher.js";
+import { dataSaver } from "../controllers/dataControllers.js";
 const BATCH_SIZE = 100;
 
 export async function fetchingDataFromEuroclear() {
@@ -34,24 +35,7 @@ export async function fetchingDataFromEuroclear() {
       offset += BATCH_SIZE;
     }
 
-    const responseBody = {
-      company: "Euroclear",
-      vacancies: vacancies,
-    };
-
-    console.log("Total vacancies in Euroclear", vacancies.length);
-    await axios.post(
-      "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
-      JSON.stringify(responseBody),
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    trackMixpanel("Euroclear", vacancies.length, true);
-    console.log("Euroclear crawler completed");
+    dataSaver("Euroclear", vacancies);
   } catch (error) {
     trackMixpanel("Euroclear", 0, false, error.message);
     console.error("Euroclear crawler error:", error);

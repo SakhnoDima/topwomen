@@ -7,6 +7,7 @@ import { delayer } from "../assistants/helpers.js";
 import { getSector } from "../assistants/sector-switcher.js";
 import { getName } from "country-list";
 import { trackMixpanel } from "../mixpanel.js";
+import { dataSaver } from "../controllers/dataControllers.js";
 
 puppeteer.use(StealthPlugin());
 dotenv.config();
@@ -14,7 +15,7 @@ dotenv.config();
 export async function fetchingDataEuInvBank() {
   console.log("European-Investment-Bank crawler started");
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: "new",
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -23,7 +24,6 @@ export async function fetchingDataEuInvBank() {
       "--window-size=1440,760",
     ],
   });
-  console.log("browser ok");
 
   const [page] = await browser.pages();
   await page.setViewport({
@@ -31,8 +31,6 @@ export async function fetchingDataEuInvBank() {
     height: 760,
     deviceScaleFactor: 1,
   });
-
-  console.log("Page ok");
 
   try {
     await page.goto(
@@ -63,7 +61,6 @@ export async function fetchingDataEuInvBank() {
     const vacancies = [];
 
     const jobElements = await page.$$("li.ps_grid-row.psc_rowact");
-    console.log(`Found ${jobElements.length} job elements.`);
 
     for (const element of jobElements) {
       const title = await element.$eval('span[id*="SCH_JOB_TITLE"]', (el) =>
@@ -95,33 +92,7 @@ export async function fetchingDataEuInvBank() {
       });
     }
 
-    const responseBody = {
-      company: "European Investment Bank",
-      vacancies,
-    };
-
-    axios
-      .post(
-        "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
-        JSON.stringify(responseBody),
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
-      .then((response) => {
-        console.log("European-Investment-Bank vacancies saved!");
-        console.log(
-          "Total vacancies in European-Investment-Bank",
-          vacancies.length
-        );
-        trackMixpanel("EuInvestBank International", vacancies.length, true);
-      })
-      .catch((error) => {
-        console.log("Error", error.message);
-        throw Error(error.message);
-      });
+    dataSaver("European Investment Bank", vacancies);
   } catch (error) {
     trackMixpanel("EuInvestBank International", 0, false, error.message);
     console.error("European-Investment-Bank crawler error:", error);

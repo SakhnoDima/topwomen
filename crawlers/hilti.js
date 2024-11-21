@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import { getSector } from "../assistants/sector-switcher.js";
 import axios from "axios";
 import { trackMixpanel } from "../mixpanel.js";
+import { dataSaver } from "../controllers/dataControllers.js";
 
 export async function fetchingDataFromHilti() {
   try {
@@ -57,25 +58,7 @@ export async function fetchingDataFromHilti() {
       }
     }
 
-    let responseBody = {
-      company: "Hilti",
-      vacancies: vacancies,
-    };
-
-    await axios.post(
-      "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
-      JSON.stringify(responseBody),
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Pauline",
-        },
-      }
-    );
-
-    trackMixpanel("Hilti", vacancies.length, true);
-
-    console.log("Hilti crawler completed", vacancies.length);
+    dataSaver("Hilti", vacancies);
   } catch (error) {
     console.error("Hilti crawler error:", error);
     trackMixpanel("Hilti", 0, false, error.message);

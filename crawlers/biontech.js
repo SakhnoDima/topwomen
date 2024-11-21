@@ -1,8 +1,8 @@
 import * as cheerio from "cheerio";
 import { getSector } from "../assistants/sector-switcher.js";
-import axios from "axios";
 import { trackMixpanel } from "../mixpanel.js";
 import { getName } from "country-list";
+import { dataSaver } from "../controllers/dataControllers.js";
 const BATCH_SIZE = 100;
 
 function getValidCountryCodes(locationString) {
@@ -60,26 +60,7 @@ export async function fetchingDataFromBiontech() {
         break;
       }
     }
-
-    let responseBody = {
-      company: "Biontech",
-      vacancies: vacancies,
-    };
-
-    await axios.post(
-      "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
-      JSON.stringify(responseBody),
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("Total vacancies in Biontech", vacancies.length);
-    trackMixpanel("Biontech", vacancies.length, true);
-
-    console.log("Biontech crawler completed");
+    dataSaver("Biontech", vacancies);
   } catch (error) {
     console.error("Biontech crawler error:", error);
     trackMixpanel("Biontech", 0, false, error.message);
