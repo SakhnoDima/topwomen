@@ -4,6 +4,7 @@ import { trackMixpanel } from "../mixpanel.js";
 import axios from "axios";
 import { delayer } from "../assistants/helpers.js";
 import { dataSaver } from "../controllers/dataControllers.js";
+import { getEnglishCountryName } from "../helpers/index.js";
 
 export async function fetchingDataFromVinci() {
   try {
@@ -44,7 +45,7 @@ export async function fetchingDataFromVinci() {
                 title: vacancyTitle,
                 url: `https://jobs.vinci.com${vacancyLink}`,
                 sector: vacancySector,
-                location: country.name,
+                location: getEnglishCountryName(country.name),
               };
             } catch (err) {
               console.error("Error processing vacancy:", err.message);

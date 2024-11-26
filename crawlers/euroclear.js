@@ -2,6 +2,7 @@ import axios from "axios";
 import { trackMixpanel } from "../mixpanel.js";
 import { getSector } from "../assistants/sector-switcher.js";
 import { dataSaver } from "../controllers/dataControllers.js";
+import { getEnglishCountryName } from "../helpers/index.js";
 const BATCH_SIZE = 100;
 
 export async function fetchingDataFromEuroclear() {
@@ -25,7 +26,7 @@ export async function fetchingDataFromEuroclear() {
             async ({ Title, PrimaryLocation, Id }) => ({
               title: Title,
               sector: await getSector(Title),
-              location: PrimaryLocation,
+              location: getEnglishCountryName(PrimaryLocation),
               url: `https://don.fa.em2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1003/job/${Id}`,
             })
           )

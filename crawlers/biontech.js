@@ -3,6 +3,8 @@ import { getSector } from "../assistants/sector-switcher.js";
 import { trackMixpanel } from "../mixpanel.js";
 import { getName } from "country-list";
 import { dataSaver } from "../controllers/dataControllers.js";
+import { getEnglishCountryName } from "../helpers/index.js";
+
 const BATCH_SIZE = 100;
 
 function getValidCountryCodes(locationString) {
@@ -43,11 +45,12 @@ export async function fetchingDataFromBiontech() {
         const vacancySector = await getSector(vacancyTitle);
 
         const [countryCode] = getValidCountryCodes(vacancyLocation);
+        const country = getName(countryCode);
 
         const vacancyData = {
           title: vacancyTitle,
           sector: vacancySector,
-          location: getName(countryCode),
+          location: getEnglishCountryName(country),
           url: `https://jobs.biontech.com${vacancyLink}`,
         };
 
