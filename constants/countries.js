@@ -115,4 +115,7 @@ export const countryMapping = {
   台灣: "Taiwan",
   日本: "Japan",
   한국: "Korea",
+  Ghana: 'Ghana',
+  // SW1H: 'United Kingdom',
+  'United Kingdom of Great Britain and Northern Ireland': 'United Kingdom'
 };

@@ -74,7 +74,6 @@ export async function fetchingDataFromVinci() {
         }
       }
     }
-    console.log(vacancies.length);
 
     dataSaver("Vinci", vacancies);
   } catch (error) {

@@ -47,6 +47,11 @@ export async function fetchingDataFromBiontech() {
         const [countryCode] = getValidCountryCodes(vacancyLocation);
         const country = getName(countryCode);
 
+        if (!getEnglishCountryName(country)) {
+          console.log("Skipped invalid country");
+          return null;
+        }
+
         const vacancyData = {
           title: vacancyTitle,
           sector: vacancySector,
@@ -63,11 +68,14 @@ export async function fetchingDataFromBiontech() {
         break;
       }
     }
+
     dataSaver("Biontech", vacancies);
   } catch (error) {
     console.error("Biontech crawler error:", error);
     trackMixpanel("Biontech", 0, false, error.message);
   }
+
+
 }
 
 async function fetchAllJobResponses(offset = 0) {

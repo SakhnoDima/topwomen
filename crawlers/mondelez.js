@@ -66,3 +66,4 @@ export async function fetchingDataFromMondelez() {
     console.error("Mondelez crawler error:", error);
   }
 }
+
