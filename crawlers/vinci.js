@@ -44,7 +44,7 @@ export async function fetchingDataFromVinci() {
                 title: vacancyTitle,
                 url: `https://jobs.vinci.com${vacancyLink}`,
                 sector: vacancySector,
-                location: country,
+                location: country.name,
               };
             } catch (err) {
               console.error("Error processing vacancy:", err.message);
