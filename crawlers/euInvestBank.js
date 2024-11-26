@@ -177,4 +177,4 @@ export async function fetchingDataEuInvBank() {
   }
 }
 
-fetchingDataEuInvBank();
+// fetchingDataEuInvBank();
