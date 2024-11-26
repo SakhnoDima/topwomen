@@ -163,5 +163,3 @@ async function getAllCountry() {
     throw new Error(`Request error: ${error.message}`);
   }
 }
-
-fetchingDataFromVinci();
