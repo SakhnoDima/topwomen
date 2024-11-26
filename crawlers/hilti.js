@@ -3,6 +3,7 @@ import { getSector } from "../assistants/sector-switcher.js";
 import axios from "axios";
 import { trackMixpanel } from "../mixpanel.js";
 import { dataSaver } from "../controllers/dataControllers.js";
+import { getEnglishCountryName } from "../helpers/index.js";
 
 export async function fetchingDataFromHilti() {
   try {
@@ -42,7 +43,7 @@ export async function fetchingDataFromHilti() {
               title: vacancyTitle,
               url: `https://careers.hilti.group/${vacancyLink}`,
               sector: vacancySector,
-              location: jobCountry,
+              location: getEnglishCountryName(jobCountry),
             };
           }
         })

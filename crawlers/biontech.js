@@ -3,6 +3,8 @@ import { getSector } from "../assistants/sector-switcher.js";
 import { trackMixpanel } from "../mixpanel.js";
 import { getName } from "country-list";
 import { dataSaver } from "../controllers/dataControllers.js";
+import { getEnglishCountryName } from "../helpers/index.js";
+
 const BATCH_SIZE = 100;
 
 function getValidCountryCodes(locationString) {
@@ -43,11 +45,17 @@ export async function fetchingDataFromBiontech() {
         const vacancySector = await getSector(vacancyTitle);
 
         const [countryCode] = getValidCountryCodes(vacancyLocation);
+        const country = getName(countryCode);
+
+        if (!getEnglishCountryName(country)) {
+          console.log("Skipped invalid country");
+          return null;
+        }
 
         const vacancyData = {
           title: vacancyTitle,
           sector: vacancySector,
-          location: getName(countryCode),
+          location: getEnglishCountryName(country),
           url: `https://jobs.biontech.com${vacancyLink}`,
         };
 
@@ -60,11 +68,14 @@ export async function fetchingDataFromBiontech() {
         break;
       }
     }
+
     dataSaver("Biontech", vacancies);
   } catch (error) {
     console.error("Biontech crawler error:", error);
     trackMixpanel("Biontech", 0, false, error.message);
   }
+
+
 }
 
 async function fetchAllJobResponses(offset = 0) {

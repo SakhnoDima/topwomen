@@ -3,6 +3,7 @@ import { getName } from "country-list";
 import { trackMixpanel } from "../mixpanel.js";
 import { getSector } from "../assistants/sector-switcher.js";
 import { dataSaver } from "../controllers/dataControllers.js";
+import { getEnglishCountryName } from "../helpers/index.js";
 
 export async function fetchingDataFromMondelez() {
   console.log("Mondelez crawler started");
@@ -50,8 +51,8 @@ export async function fetchingDataFromMondelez() {
           vacancies.push({
             title: title,
             sector: sector,
-            location: location,
-            url: url,
+            location: getEnglishCountryName(location),
+            url,
           });
         }
       }
@@ -65,3 +66,4 @@ export async function fetchingDataFromMondelez() {
     console.error("Mondelez crawler error:", error);
   }
 }
+
