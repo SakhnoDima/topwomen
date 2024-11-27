@@ -15,7 +15,7 @@ dotenv.config();
 export async function fetchingDataEuInvBank() {
   console.log("European-Investment-Bank crawler started");
   const browser = await puppeteer.launch({
-    headless: true, // для сервера має бути true!
+    headless: false,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -36,10 +36,10 @@ export async function fetchingDataEuInvBank() {
 
   try {
     await page.goto(
-      "https://erecruitment.eib.org/psc/hr/EIBJOBS/CAREERS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?Page=HRS_APP_SCHJOB_FL&Action=U",
-      {
-        waitUntil: "networkidle2",
-      }
+        "https://erecruitment.eib.org/psc/hr/EIBJOBS/CAREERS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?Page=HRS_APP_SCHJOB_FL&Action=U",
+        {
+          waitUntil: "networkidle2",
+        }
     );
 
     // const clickUntilHidden = async () => {
@@ -62,8 +62,8 @@ export async function fetchingDataEuInvBank() {
 
     const jobElements = await page.$$("li.ps_grid-row.psc_rowact");
     let { id, idOld } = await jobElements[0].$eval(
-      'span[id*="HRS_APP_JBSCH_I_HRS_JOB_OPENING_ID"]',
-      (el) => el.textContent.trim()
+        'span[id*="HRS_APP_JBSCH_I_HRS_JOB_OPENING_ID"]',
+        (el) => el.textContent.trim()
     );
     await jobElements[0].click();
 
@@ -71,26 +71,25 @@ export async function fetchingDataEuInvBank() {
 
     while (true) {
       while (idOld === id) {
-        const idElement = await page.$(
-          'span[id="HRS_SCH_WRK2_HRS_JOB_OPENING_ID"]'
-        );
+        const idElement = await page.$('span[id="HRS_SCH_WRK2_HRS_JOB_OPENING_ID"]')
         if (idElement) {
-          id = await idElement.evaluate((el) => el.textContent.trim());
+          id = await idElement.evaluate((el) =>
+              el.textContent.trim()
+          );
         }
         await delayer(200);
       }
 
       const title = await page.$eval('h1[id="PT_PAGETITLE"]', (el) =>
-        el.textContent.trim()
+          el.textContent.trim()
       );
-      const locationText = await page.$eval(
-        'span[id*="HRS_SCH_WRK_HRS_DESCRLONG"]',
-        (el) => el.textContent.trim()
+      const locationText = await page.$eval('span[id*="HRS_SCH_WRK_HRS_DESCRLONG"]', (el) =>
+          el.textContent.trim()
       );
       const countryCode = locationText
-        .split(" - ")
-        .map((part) => part.trim())
-        .shift();
+          .split(" - ")
+          .map((part) => part.trim())
+          .shift();
       const location = await getName(countryCode);
       const sector = await getSector(title);
 
@@ -98,25 +97,17 @@ export async function fetchingDataEuInvBank() {
       await shareBtn.click();
 
       await page.waitForSelector('iframe[title="Careers Popup window"]');
-      const iframeElement = await page.$(
-        'iframe[title="Careers Popup window"]'
-      );
+      const iframeElement = await page.$('iframe[title="Careers Popup window"]');
       const iframe = await iframeElement.contentFrame();
 
-      const shareMessage = await iframe.$eval(
-        'span[id="HRS_EMLFRND_WRK_HRS_CRSP_MSG"]',
-        (el) => el.textContent.trim()
+      const shareMessage = await iframe.$eval('span[id="HRS_EMLFRND_WRK_HRS_CRSP_MSG"]', (el) =>
+          el.textContent.trim()
       );
-      console.log(shareMessage);
-      let link = shareMessage
-        .match(/https?:\/\/[^\s]+/g)[0]
-        .trim()
-        .replace(/Thank$/, "");
+      console.log(shareMessage)
+      let link = (shareMessage.match(/https?:\/\/[^\s]+/g))[0].trim().replace(/Thank$/, '');
       console.log("\n\n", link);
 
-      const shareCloseBtn = await iframe.$(
-        'a[id="HRS_APPL_WRK_HRS_CANCEL_BTN"]'
-      );
+      const shareCloseBtn = await iframe.$('a[id="HRS_APPL_WRK_HRS_CANCEL_BTN"]');
       await shareCloseBtn.click();
       await delayer(600);
 
@@ -124,14 +115,11 @@ export async function fetchingDataEuInvBank() {
         title,
         sector,
         location,
-        link,
+        link
       });
 
       const nextPageBtn = await page.$('a[id="DERIVED_HRS_FLU_HRS_NEXT_PB"]');
-      if (
-        (await nextPageBtn.evaluate((el) => el.getAttribute("disabled"))) ===
-        "disabled"
-      ) {
+      if (await nextPageBtn.evaluate((el) => el.getAttribute("disabled")) === "disabled") {
         break;
       }
       await nextPageBtn.click();
@@ -168,13 +156,14 @@ export async function fetchingDataEuInvBank() {
     //   });
     // }
 
-    await dataSaver("European Investment Bank", vacancies);
+    // await dataSaver("European Investment Bank", vacancies);
   } catch (error) {
-    await trackMixpanel("EuInvestBank International", 0, false, error.message);
+    // await trackMixpanel("EuInvestBank International", 0, false, error.message);
     console.error("European-Investment-Bank crawler error:", error);
   } finally {
     await browser.close();
+    console.log(vacancies)
   }
 }
 
-//etchingDataEuInvBank();
+fetchingDataEuInvBank()
