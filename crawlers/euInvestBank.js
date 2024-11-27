@@ -42,24 +42,6 @@ export async function fetchingDataEuInvBank() {
       }
     );
 
-    // const clickUntilHidden = async () => {
-    //   let isVisible = true;
-    //   let click = 0;
-    //   while (isVisible) {
-    //     try {
-    //       isVisible = await page.$eval(".ps_box-more", (el) => el !== null);
-    //       if (isVisible) {
-    //         await page.click(".ps_box-more");
-    //         click++;
-    //         await delayer(1000);
-    //       }
-    //     } catch (error) {
-    //       isVisible = false;
-    //     }
-    //   }
-    // };
-    // await clickUntilHidden();
-
     const jobElements = await page.$$("li.ps_grid-row.psc_rowact");
     let { id, idOld } = await jobElements[0].$eval(
       'span[id*="HRS_APP_JBSCH_I_HRS_JOB_OPENING_ID"]',
@@ -70,135 +52,101 @@ export async function fetchingDataEuInvBank() {
     let counter = 1;
 
     while (true) {
-      while (idOld === id) {
-        const idElement = await page.$(
-          'span[id="HRS_SCH_WRK2_HRS_JOB_OPENING_ID"]'
-        );
+      console.log(`Processing job #${counter}...`);
+      let id;
+      while (!id || id === idOld) {
+        const idElement = await page.$('span[id="HRS_SCH_WRK2_HRS_JOB_OPENING_ID"]');
         if (idElement) {
           id = await idElement.evaluate((el) => el.textContent.trim());
+        } else {
+          console.warn("ID element not found, retrying...");
         }
-        await delayer(200);
+        await delayer(300);
       }
 
       const title = await page.$eval('h1[id="PT_PAGETITLE"]', (el) =>
-        el.textContent.trim()
+          el.textContent.trim()
       );
+      console.log(`Job title: ${title}`);
+
       const locationText = await page.$eval(
-        'span[id*="HRS_SCH_WRK_HRS_DESCRLONG"]',
-        (el) => el.textContent.trim()
+          'span[id*="HRS_SCH_WRK_HRS_DESCRLONG"]',
+          (el) => el.textContent.trim()
       );
-      const countryCode = locationText
-        .split(" - ")
-        .map((part) => part.trim())
-        .shift();
+      const countryCode = locationText.split(" - ").map((part) => part.trim()).shift();
       const location = await getName(countryCode);
       const sector = await getSector(title);
 
       const shareBtn = await page.$('a[id*="HRS_SCH_WRK_HRS_CE_EML_FRND"]');
-      await shareBtn.click();
+      if (shareBtn) {
+        console.log("Share button found, clicking...");
+        await shareBtn.click();
+      } else {
+        console.error("Share button not found, skipping...");
+        break;
+      }
 
-      const modalFrame = await page.waitForSelector(
-        'iframe[title="Careers Popup window"]'
-      );
-      if (modalFrame) {
-        console.log("!!  modal frame !!");
-
-        const iframeElement = await page.$(
-          'iframe[title="Careers Popup window"]'
+      console.log("Waiting for iframe...");
+      let iframeElement;
+      try {
+        iframeElement = await page.waitForSelector(
+            'iframe[title="Careers Popup window"]',
+            { timeout: 5000 }
         );
-        await delayer(1000);
-        console.log(1);
-        const iframe = await iframeElement.contentFrame();
-        console.log(2);
-        const shareMessage = await iframe.$eval(
+      } catch (e) {
+        console.error("Iframe not found, skipping job...");
+        continue;
+      }
+
+      const iframe = await iframeElement.contentFrame();
+      if (!iframe) {
+        console.error("Iframe content not accessible!");
+        continue;
+      }
+
+      console.log("Extracting job link from iframe...");
+      const shareMessage = await iframe.$eval(
           'span[id="HRS_EMLFRND_WRK_HRS_CRSP_MSG"]',
           (el) => el.textContent.trim()
-        );
-        console.log(shareMessage);
-        let link = shareMessage
+      );
+
+      const link = shareMessage
           .match(/https?:\/\/[^\s]+/g)[0]
           .trim()
           .replace(/Thank$/, "");
-        console.log("\n\n", link);
+      console.log(`Job link: ${link}`);
 
-        const shareCloseBtn = await iframe.$(
-          'a[id="HRS_APPL_WRK_HRS_CANCEL_BTN"]',
-          { timeout: 2000 }
-        );
-        if (shareCloseBtn) {
-          await shareCloseBtn.click();
-          await delayer(1500);
-        } else console.log("Dont found");
-
-        vacancies.push({
-          title,
-          sector,
-          location,
-          link,
-        });
-
-        const nextPageBtn = await page.$(
-          'a[id="DERIVED_HRS_FLU_HRS_NEXT_PB"]',
-          { timeout: 2000 }
-        );
-        if (!nextPageBtn) {
-          console.log("nextPageBtn not found");
-        }
-
-        if (
-          (await nextPageBtn.evaluate((el) => el.getAttribute("disabled"))) ===
-          "disabled"
-        ) {
-          break;
-        }
-        await nextPageBtn.click();
-        idOld = id;
-        counter++;
+      const shareCloseBtn = await iframe.$('a[id="HRS_APPL_WRK_HRS_CANCEL_BTN"]');
+      if (shareCloseBtn) {
+        console.log("Closing iframe...");
+        await shareCloseBtn.click();
+        await delayer(500);
       } else {
-        console.log("Framr didnt found");
-
-        const nextPageBtn = await page.$('a[id="DERIVED_HRS_FLU_HRS_NEXT_PB"]');
-        if (
-          (await nextPageBtn.evaluate((el) => el.getAttribute("disabled"))) ===
-          "disabled"
-        ) {
-          break;
-        }
-        await nextPageBtn.click();
-        idOld = id;
+        console.warn("Close button in iframe not found.");
       }
+
+      vacancies.push({ title, sector, location, link });
+
+      const nextPageBtn = await page.$('a[id="DERIVED_HRS_FLU_HRS_NEXT_PB"]');
+      if (!nextPageBtn) {
+        console.error("Next page button not found, ending process...");
+        break;
+      }
+
+      const isDisabled = await nextPageBtn.evaluate(
+          (el) => el.getAttribute("disabled") === "disabled"
+      );
+      if (isDisabled) {
+        console.log("Next page button is disabled, ending process...");
+        break;
+      }
+
+      console.log("Going to next job...");
+      await nextPageBtn.click();
+      idOld = id;
+      counter++;
+      await delayer(500);
     }
-
-    // for (const element of jobElements) {
-    //   const title = await element.$eval('span[id*="SCH_JOB_TITLE"]', (el) =>
-    //     el.textContent.trim()
-    //   );
-    //
-    //   const locationText = await element.$eval('span[id*="LOCATION"]', (el) =>
-    //     el.textContent.trim()
-    //   );
-    //   const countryCode = locationText
-    //     .split(" - ")
-    //     .map((part) => part.trim())
-    //     .shift();
-    //   const location = await getName(countryCode);
-    //
-    //   const sector = await getSector(title);
-    //
-    //   const id = await element.$eval(
-    //     'span[id*="HRS_APP_JBSCH_I_HRS_JOB_OPENING_ID"]',
-    //     (el) => el.textContent.trim()
-    //   );
-    //   const link = `https://erecruitment.eib.org/psp/hr/EIBJOBS/CAREERS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?Page=HRS_APP_JBPST_FL&Action=U&FOCUS=Applicant&SiteId=1&JobOpeningId=${id}&PostingSeq=2`;
-    //
-    //   vacancies.push({
-    //     title,
-    //     sector,
-    //     location,
-    //     url: link,
-    //   });
-    // }
-
     // await dataSaver("European Investment Bank", vacancies);
   } catch (error) {
     // await trackMixpanel("EuInvestBank International", 0, false, error.message);
