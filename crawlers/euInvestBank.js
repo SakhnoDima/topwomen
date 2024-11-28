@@ -198,5 +198,3 @@ export async function fetchingDataEuInvBank() {
     console.log(vacancies.length);
   }
 }
-
-fetchingDataEuInvBank();
