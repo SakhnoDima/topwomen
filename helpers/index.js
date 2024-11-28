@@ -1,10 +1,10 @@
 import { countryMapping } from "../constants/countries.js";
 
 export const getEnglishCountryName = (country) => {
-  // if (!countryMapping[country]) {
-  //   console.log(`${country}`);
-  //   return "Unknown";
-  // }
+  if (!countryMapping[country]) {
+    console.log(`${country}`);
+    return country;
+  }
 
-  return countryMapping[country] || false;
+  return countryMapping[country];
 };
