@@ -5,4 +5,6 @@ import { getSector } from "../assistants/sector-switcher.js";
 import { dataSaver } from "../controllers/dataControllers.js";
 import { getEnglishCountryName } from "../helpers/index.js";
 
-export async function fetchingDataFromSiemens() {}
+export async function fetchingDataFromSiemens() {
+  console.log("Женя топ девелопер");
+}
