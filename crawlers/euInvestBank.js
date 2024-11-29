@@ -165,7 +165,7 @@ export async function fetchingDataEuInvBank() {
         console.warn("Close button in iframe not found.");
       }
 
-      vacancies.push({ title, sector, location, link });
+      vacancies.push({ title, sector, location, url: link });
 
       const nextPageBtn = await page.$('a[id="DERIVED_HRS_FLU_HRS_NEXT_PB"]', {
         timeout: 5000,
