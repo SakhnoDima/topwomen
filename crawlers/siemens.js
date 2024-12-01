@@ -3,87 +3,72 @@ import axios from "axios";
 import { trackMixpanel } from "../mixpanel.js";
 import { getSector } from "../assistants/sector-switcher.js";
 import { dataSaver } from "../controllers/dataControllers.js";
-
+import { delayer } from "../assistants/helpers.js";
 
 async function fetchingDataFromSiemens() {
-  console.log("Женя топ девелопер");
-  console.log("Діма тоже нічо так))");
-
-  let offset = 0;
-  let totalVacancies = 5000;
-  const vacancies = [];
+  const limit = 10;
+  const parallelRequests = 5;
+  let page = 0;
+  let results = [];
 
   try {
-    while (offset < totalVacancies) {
-      console.log(offset, totalVacancies);
+    while (true) {
+      const positions = await fetchBatch(page, parallelRequests, limit);
+      for (const position of positions) {
+        const title = position.name;
+        const location = position.location.match(/, ([^,]+)$/)[1].trim();
+        const url = position.canonicalPositionUrl;
 
-      const offsets = Array.from({length: 5}, (_, i) => offset + i * 10);
-      const dataBatch = await fetchBatch(offsets);
-
-      for (const data of dataBatch) {
-        totalVacancies = data.count;
-
-        for (const position of data.positions) {
-          const title = position.name;
-          const location = position.location.match(/, ([^,]+)$/)[1].trim();
-          const url = position.canonicalPositionUrl;
-
-          vacancies.push({
-            title,
-            sector: await getSector(title),
-            location,
-            url,
-          });
-        }
+        results.push({
+          title,
+          sector: await getSector(title),
+          location,
+          url,
+        });
       }
-      //
-      // if (offset !== 0 && offset % 2800 === 0) {
-      //   await delay(180000);
-      // }
-      offset += 50;
-    }
 
-    await dataSaver("Siemens", vacancies);
+      if (positions.length === 0) {
+        break;
+      }
+      page += parallelRequests;
+      await delayer(1000);
+    }
+    await dataSaver("Siemens", results);
   } catch (error) {
     await trackMixpanel("Siemens", 0, false, error.message);
     console.error("Siemens crawler error:", error);
   } finally {
-    console.log(vacancies, vacancies.length);
+    console.log(results, results.length);
   }
 }
-
-async function fetchBatch(offsets, retries = 5, delayMs = 90000) {
-  for (let attempt = 1; attempt <= retries; attempt++) {
+async function fetchBatch(page, parallelRequests, limit) {
+  for (let attempt = 1; attempt <= 5; attempt++) {
     try {
-      const promises = offsets.map(offset =>
-          axios.get(
-              `https://jobs.siemens.com/api/apply/v2/jobs?domain=siemens.com&start=${offset}&num=10&hl=en`
+      const promises = Array.from({ length: parallelRequests }, (_, i) => {
+        const offset = (page + i) * limit;
+        return axios
+          .get(
+            `https://jobs.siemens.com/api/apply/v2/jobs?domain=siemens.com&start=${offset}`
           )
-      );
+          .then((response) => response.data.positions);
+      });
 
       const responses = await Promise.all(promises);
-      return responses.map(response => response.data); // Успішно завершено
+      return responses.flat();
     } catch (error) {
       if (
-          error.response &&
-          (error.response.status === 429 || error.response.status === 403)
+        error.response &&
+        (error.response.status === 429 || error.response.status === 403)
       ) {
         console.warn(
-            `Received ${error.response.status}. Attempt ${attempt} of ${retries}. Waiting for ${delayMs}ms...`
+          `Received ${error.response.status}. Attempt ${attempt}. Waiting for 90000ms...`
         );
-        await delay(delayMs);
+        await delayer(90000);
       } else {
         throw error;
       }
     }
   }
 
-  throw new Error(`Failed to fetch batch after ${retries} attempts.`);
+  throw new Error("Failed to fetch batch after 5 attempts.");
 }
-
-
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-fetchingDataFromSiemens()

@@ -74,6 +74,11 @@ export async function fetchingDataEuInvBank() {
           { timeout: 2000 }
         );
         title = await titleElement.evaluate((el) => el.textContent.trim());
+
+        if (!title) {
+          console.error("Title element not found, skipping job...");
+          continue;
+        }
       } catch {
         console.warn("Title element not found, skipping job...");
         continue;
