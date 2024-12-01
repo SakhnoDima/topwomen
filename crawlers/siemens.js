@@ -5,7 +5,7 @@ import { getSector } from "../assistants/sector-switcher.js";
 import { dataSaver } from "../controllers/dataControllers.js";
 import { delayer } from "../assistants/helpers.js";
 
-async function fetchingDataFromSiemens() {
+export async function fetchingDataFromSiemens() {
   const limit = 10;
   const parallelRequests = 5;
   let page = 0;
