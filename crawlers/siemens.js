@@ -4,6 +4,7 @@ import { trackMixpanel } from "../mixpanel.js";
 import { getSector } from "../assistants/sector-switcher.js";
 import { dataSaver } from "../controllers/dataControllers.js";
 import { delayer } from "../assistants/helpers.js";
+import { getEnglishCountryName } from "../helpers/index.js";
 
 export async function fetchingDataFromSiemens() {
   const limit = 10;
@@ -15,14 +16,14 @@ export async function fetchingDataFromSiemens() {
     while (true) {
       const positions = await fetchBatch(page, parallelRequests, limit);
       for (const position of positions) {
-        const title = position.name;
-        const location = position.location.match(/, ([^,]+)$/)[1].trim();
+        const title = position.name.trim();
+        const location = position.location.split(",")[2].trim();
         const url = position.canonicalPositionUrl;
 
         results.push({
           title,
           sector: await getSector(title),
-          location,
+          location: getEnglishCountryName(location),
           url,
         });
       }
@@ -72,3 +73,5 @@ async function fetchBatch(page, parallelRequests, limit) {
 
   throw new Error("Failed to fetch batch after 5 attempts.");
 }
+
+ß;
