@@ -73,5 +73,3 @@ async function fetchBatch(page, parallelRequests, limit) {
 
   throw new Error("Failed to fetch batch after 5 attempts.");
 }
-
-ß;
