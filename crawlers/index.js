@@ -5,6 +5,7 @@ import { fetchingDataFromMondelez } from "./mondelez.js";
 import { fetchingDataFromVinci } from "./vinci.js";
 import { fetchingDataEuInvBank } from "./euInvestBank.js";
 import { fetchingDataFromSiemens } from "./siemens.js";
+import { fetchingDataFromKarcher } from "./karcher.js";
 
 export const CRAWLERS = {
   euroclear: fetchingDataFromEuroclear,
@@ -14,4 +15,5 @@ export const CRAWLERS = {
   vinci: fetchingDataFromVinci,
   "european investment bank": fetchingDataEuInvBank,
   siemens: fetchingDataFromSiemens,
+  karcher: fetchingDataFromKarcher,
 };

@@ -45,37 +45,37 @@ export async function fetchingDataFromKarcher() {
             .text()
             .trim();
 
-          const [countryCode] = getValidCountryCodes(vacancyLocation);
+          if (vacancyLocation) {
+            const [countryCode] = getValidCountryCodes(vacancyLocation);
 
-          const countryNameFromLibrary = getName(countryCode);
-          vacancyData.location = getEnglishCountryName(countryNameFromLibrary);
+            const countryNameFromLibrary = getName(countryCode);
+            vacancyData.location = getEnglishCountryName(
+              countryNameFromLibrary
+            );
+          } else return null;
 
           return vacancyData;
         })
         .get();
 
       const processedVacancies = await Promise.all(promises);
+
       vacancies.push(...processedVacancies.filter(Boolean));
 
-      console.log($(".data-row").length);
       if ($(".data-row").length < VACANCIES_PER_PAGE) break;
       offset += VACANCIES_PER_PAGE;
     }
-    console.log(vacancies);
-    console.log(vacancies.length);
 
-    // dataSaver("Euroclear", vacancies);
+    dataSaver("Karcher", vacancies);
   } catch (error) {
-    // trackMixpanel("Euroclear", 0, false, error.message);
+    trackMixpanel("Karcher", 0, false, error.message);
     console.error("Karcher crawler error:", error);
   }
 }
 
 async function karcherDataFetcher(offset) {
   const response = await axios.get(
-    `https://careers.kaercher.com/search/?startrow=50`
+    `https://careers.kaercher.com/search/?startrow=${offset}`
   );
   return response.data;
 }
-
-fetchingDataFromKarcher();
