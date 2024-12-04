@@ -77,10 +77,14 @@ export async function fetchingDataEuInvBank() {
 
         if (!title) {
           console.error("Title element not found, skipping job...");
+          idOld = id;
+          counter++;
           continue;
         }
       } catch {
         console.warn("Title element not found, skipping job...");
+        idOld = id;
+        counter++;
         continue;
       }
 
@@ -100,6 +104,8 @@ export async function fetchingDataEuInvBank() {
         location = await getName(countryCode);
       } catch {
         console.warn("Location element not found, skipping job...");
+        idOld = id;
+        counter++;
         continue;
       }
 
@@ -113,6 +119,8 @@ export async function fetchingDataEuInvBank() {
         await shareBtn.click();
       } else {
         console.error("Share button not found, skipping...");
+        idOld = id;
+        counter++;
         continue;
       }
 
@@ -125,12 +133,16 @@ export async function fetchingDataEuInvBank() {
         );
       } catch (e) {
         console.error("Iframe not found, skipping job...");
+        idOld = id;
+        counter++;
         continue;
       }
 
       const iframe = await iframeElement.contentFrame();
       if (!iframe) {
         console.error("Iframe content not accessible!");
+        idOld = id;
+        counter++;
         continue;
       }
 
@@ -142,6 +154,8 @@ export async function fetchingDataEuInvBank() {
       );
       if (!shareMessageElement) {
         console.log(`shareMessageElement not found`);
+        idOld = id;
+        counter++;
         continue;
       }
       const shareMessage = await iframe.$eval(
@@ -150,6 +164,8 @@ export async function fetchingDataEuInvBank() {
       );
       if (!shareMessage) {
         console.error("Text in Iframe doesnt found");
+        idOld = id;
+        counter++;
         continue;
       }
 
@@ -177,6 +193,8 @@ export async function fetchingDataEuInvBank() {
       });
       if (!nextPageBtn) {
         console.error("Next page button not found, ending process...");
+        idOld = id;
+        counter++;
         continue;
       }
 

@@ -4,7 +4,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import tasksRoutes from "./routes/tasks.js";
-import { startCrawler as euroclearCrawler } from "./crawlers/euroclear/index.js";
 
 dotenv.config();
 

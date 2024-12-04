@@ -38,8 +38,6 @@ export async function fetchingDataFromSiemens() {
   } catch (error) {
     await trackMixpanel("Siemens", 0, false, error.message);
     console.error("Siemens crawler error:", error);
-  } finally {
-    console.log(results, results.length);
   }
 }
 async function fetchBatch(page, parallelRequests, limit) {
