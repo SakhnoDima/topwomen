@@ -7,7 +7,7 @@ import { getEnglishCountryName } from "../helpers/index.js";
 
 const BATCH_SIZE = 100;
 
-function getValidCountryCodes(locationString) {
+export function getValidCountryCodes(locationString) {
   const countryCodeMatches = locationString.match(
     /,\s*([A-Z]{2})\s*(?=,|\s|$)/g
   );
