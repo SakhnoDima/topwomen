@@ -1,4 +1,3 @@
-import * as cheerio from "cheerio";
 import { getSector } from "../assistants/sector-switcher.js";
 import axios from "axios";
 import { trackMixpanel } from "../mixpanel.js";
@@ -37,7 +36,7 @@ export async function fetchingDataFromGrundfos() {
     dataSaver("Grundfos", vacancies);
   } catch (error) {
     console.error("Grundfos crawler error:", error);
-    //trackMixpanel("Grundfos", 0, false, error.message);
+    trackMixpanel("Grundfos", 0, false, error.message);
   }
 }
 
@@ -95,5 +94,3 @@ async function fetchAllJobResponses(page) {
 
   throw new Error("Failed to fetch batch after 5 attempts.");
 }
-
-fetchingDataFromGrundfos();

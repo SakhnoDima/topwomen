@@ -67,7 +67,7 @@ export async function fetchingDataEuInvBank() {
       }
       console.log("Start search");
 
-      // !search title
+      // search title
       let title;
       try {
         const titleElement = await page.waitForSelector(
@@ -90,7 +90,7 @@ export async function fetchingDataEuInvBank() {
 
       console.log(`Job title: ${title}`);
 
-      // !search locanion
+      // search locanion
       let location;
       try {
         const locationText = await page.$eval(
@@ -109,7 +109,7 @@ export async function fetchingDataEuInvBank() {
         continue;
       }
 
-      // !search sector
+      // search sector
       const sector = await getSector(title);
 
       // search link
@@ -172,7 +172,7 @@ export async function fetchingDataEuInvBank() {
         idOld = id;
         counter++;
         await shareCloseBtn.click();
-        await delayer(5000);
+        await delayer(1000);
       } else if (!shareMessage && !shareCloseBtn) {
         break;
       }
@@ -186,7 +186,7 @@ export async function fetchingDataEuInvBank() {
       if (shareCloseBtn) {
         console.log("Closing iframe...");
         await shareCloseBtn.click();
-        await delayer(5000);
+        await delayer(1000);
       } else {
         console.warn("Close button in iframe not found.");
       }
@@ -214,13 +214,11 @@ export async function fetchingDataEuInvBank() {
       await delayer(500);
     }
   } catch (error) {
-    //await trackMixpanel("EuInvestBank International", 0, false, error.message);
+    await trackMixpanel("EuInvestBank International", 0, false, error.message);
     console.error("European-Investment-Bank crawler error:", error);
   } finally {
-    //await dataSaver("European Investment Bank", vacancies);
+    await dataSaver("European Investment Bank", vacancies);
     await browser.close();
     console.log(vacancies.length);
   }
 }
-
-fetchingDataEuInvBank();
