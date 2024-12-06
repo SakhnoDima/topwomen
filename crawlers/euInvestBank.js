@@ -39,6 +39,7 @@ export async function fetchingDataEuInvBank() {
       "https://erecruitment.eib.org/psc/hr/EIBJOBS/CAREERS/c/HRS_HRAM_FL.HRS_CG_SEARCH_FL.GBL?Page=HRS_APP_SCHJOB_FL&Action=U",
       {
         waitUntil: "networkidle2",
+        timeout: 500000,
       }
     );
 
@@ -53,7 +54,6 @@ export async function fetchingDataEuInvBank() {
 
     while (true) {
       console.log(`Processing job #${counter}...`);
-      let id;
       while (!id || id === idOld) {
         const idElement = await page.$(
           'span[id="HRS_SCH_WRK2_HRS_JOB_OPENING_ID"]'
@@ -65,6 +65,7 @@ export async function fetchingDataEuInvBank() {
         }
         await delayer(300);
       }
+      console.log("Start search");
 
       // !search title
       let title;
@@ -73,14 +74,13 @@ export async function fetchingDataEuInvBank() {
           'h1[id="PT_PAGETITLE"]',
           { timeout: 2000 }
         );
-        title = await titleElement.evaluate((el) => el.textContent.trim());
-
-        if (!title) {
+        if (!titleElement) {
           console.error("Title element not found, skipping job...");
           idOld = id;
           counter++;
           continue;
         }
+        title = await titleElement.evaluate((el) => el.textContent.trim());
       } catch {
         console.warn("Title element not found, skipping job...");
         idOld = id;
@@ -133,69 +133,69 @@ export async function fetchingDataEuInvBank() {
         );
       } catch (e) {
         console.error("Iframe not found, skipping job...");
-        idOld = id;
-        counter++;
-        continue;
+        break;
       }
 
       const iframe = await iframeElement.contentFrame();
       if (!iframe) {
         console.error("Iframe content not accessible!");
-        idOld = id;
-        counter++;
-        continue;
+        break;
       }
 
       console.log("Extracting job link from iframe...");
+      await delayer(5000);
+
+      const shareCloseBtn = await iframe.$(
+        'a[id="HRS_APPL_WRK_HRS_CANCEL_BTN"]'
+      );
 
       const shareMessageElement = await iframe.$(
         'span[id="HRS_EMLFRND_WRK_HRS_CRSP_MSG"]',
-        { timeout: 5000 }
+        { timeout: 10000 }
       );
-      if (!shareMessageElement) {
+      if (!shareMessageElement && shareCloseBtn) {
         console.log(`shareMessageElement not found`);
         idOld = id;
         counter++;
-        continue;
+        await shareCloseBtn.click();
+        await delayer(5000);
+      } else if (!shareMessageElement && !shareCloseBtn) {
+        break;
       }
+
       const shareMessage = await iframe.$eval(
         'span[id="HRS_EMLFRND_WRK_HRS_CRSP_MSG"]',
         (el) => el.textContent.trim()
       );
-      if (!shareMessage) {
+      if (!shareMessage && shareCloseBtn) {
         console.error("Text in Iframe doesnt found");
         idOld = id;
         counter++;
-        continue;
+        await shareCloseBtn.click();
+        await delayer(5000);
+      } else if (!shareMessage && !shareCloseBtn) {
+        break;
       }
 
       const link = shareMessage
         .match(/https?:\/\/[^\s]+/g)[0]
         .trim()
         .replace(/Thank$/, "");
-      console.log(`Job link: ${link}`);
+      await delayer(500);
 
-      const shareCloseBtn = await iframe.$(
-        'a[id="HRS_APPL_WRK_HRS_CANCEL_BTN"]'
-      );
       if (shareCloseBtn) {
         console.log("Closing iframe...");
         await shareCloseBtn.click();
-        await delayer(500);
+        await delayer(5000);
       } else {
         console.warn("Close button in iframe not found.");
       }
 
-      vacancies.push({ title, sector, location, url: link });
-
-      const nextPageBtn = await page.$('a[id="DERIVED_HRS_FLU_HRS_NEXT_PB"]', {
+      let nextPageBtn = await page.$('a[id="DERIVED_HRS_FLU_HRS_NEXT_PB"]', {
         timeout: 5000,
       });
       if (!nextPageBtn) {
-        console.error("Next page button not found, ending process...");
-        idOld = id;
-        counter++;
-        continue;
+        break;
       }
 
       const isDisabled = await nextPageBtn.evaluate(
@@ -207,17 +207,20 @@ export async function fetchingDataEuInvBank() {
       }
 
       console.log("Going to next job...");
+      vacancies.push({ title, sector, location, url: link });
       await nextPageBtn.click();
       idOld = id;
       counter++;
       await delayer(500);
     }
-    await dataSaver("European Investment Bank", vacancies);
   } catch (error) {
-    await trackMixpanel("EuInvestBank International", 0, false, error.message);
+    //await trackMixpanel("EuInvestBank International", 0, false, error.message);
     console.error("European-Investment-Bank crawler error:", error);
   } finally {
+    //await dataSaver("European Investment Bank", vacancies);
     await browser.close();
     console.log(vacancies.length);
   }
 }
+
+fetchingDataEuInvBank();
