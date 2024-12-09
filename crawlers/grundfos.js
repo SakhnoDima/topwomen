@@ -27,7 +27,7 @@ export async function fetchingDataFromGrundfos() {
         });
       }
 
-      if (unFilteredVacancies.length === 50) {
+      if (unFilteredVacancies.length < 50) {
         break;
       }
       page += 5;
