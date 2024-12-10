@@ -8,6 +8,7 @@ import { fetchingDataFromSiemens } from "./siemens.js";
 import { fetchingDataFromKarcher } from "./karcher.js";
 import { fetchingDataFromGrundfos } from "./grundfos.js";
 import { fetchingDataFromPowerco } from "./powerco.js";
+import { fetchingDataFromVolkswagenGroup } from "./volkswagen-group.js";
 
 export const CRAWLERS = {
   euroclear: fetchingDataFromEuroclear,
@@ -20,4 +21,5 @@ export const CRAWLERS = {
   karcher: fetchingDataFromKarcher,
   grundfos: fetchingDataFromGrundfos,
   powerco: fetchingDataFromPowerco,
+  "volkswagen group": fetchingDataFromVolkswagenGroup,
 };
