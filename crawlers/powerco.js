@@ -81,5 +81,3 @@ async function karcherDataFetcher(offset) {
   );
   return response.data;
 }
-
-fetchingDataFromPowerco();
