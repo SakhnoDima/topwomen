@@ -19,5 +19,5 @@ export const CRAWLERS = {
   siemens: fetchingDataFromSiemens,
   karcher: fetchingDataFromKarcher,
   grundfos: fetchingDataFromGrundfos,
-  powerсo: fetchingDataFromPowerco,
+  powerco: fetchingDataFromPowerco,
 };
