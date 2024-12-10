@@ -11,75 +11,75 @@ import { getValidCountryCodes } from "./biontech.js";
 const VACANCIES_PER_PAGE = 25;
 
 export async function fetchingDataFromPowerco() {
-    try {
-        console.log("PowerCo crawler started");
-        let offset = 0;
-        const vacancies = [];
+  try {
+    console.log("PowerCo crawler started");
+    let offset = 0;
+    const vacancies = [];
 
-        while (true) {
-            const responseHtml = await karcherDataFetcher(offset);
-            const $ = cheerio.load(responseHtml);
+    while (true) {
+      const responseHtml = await karcherDataFetcher(offset);
+      const $ = cheerio.load(responseHtml);
 
-            const promises = $(".data-row")
-                .map(async (_, element) => {
+      const promises = $(".data-row")
+        .map(async (_, element) => {
+          let vacancyData = {
+            title: "",
+            sector: "",
+            location: "",
+            url: "",
+          };
 
+          const titleElement = $(element).find(".jobTitle.hidden-phone");
 
-                    let vacancyData = {
-                        title: "",
-                        sector: "",
-                        location: "",
-                        url: "",
-                    };
+          if (titleElement.length) {
+            vacancyData.title = titleElement.text().trim();
+            const href = titleElement.find("a").attr("href");
 
-                    const titleElement = $(element).find(".jobTitle.hidden-phone");
+            vacancyData.url = `https://careers.powerco.de${titleElement
+              .find("a")
+              .attr("href")}`;
+            vacancyData.sector = await getSector(titleElement.text().trim());
+          } else return null;
 
-                    if (titleElement.length) {
-                        vacancyData.title = titleElement.text().trim();
-                        const href = titleElement.find("a").attr("href");
+          const vacancyLocation = $(element)
+            .find(".jobLocation")
+            .first()
+            .text()
+            .trim();
 
-                        vacancyData.url = `https://careers.powerco.de${titleElement.find("a").attr("href")}`;
-                        vacancyData.sector = await getSector(titleElement.text().trim());
-                    } else return null;
+          if (vacancyLocation) {
+            const [countryCode] = getValidCountryCodes(vacancyLocation);
 
-                    const vacancyLocation = $(element)
-                        .find(".jobLocation")
-                        .first()
-                        .text()
-                        .trim();
+            const countryNameFromLibrary = getName(countryCode);
+            vacancyData.location = getEnglishCountryName(
+              countryNameFromLibrary
+            );
+          } else return null;
 
-                    if (vacancyLocation) {
-                        const [countryCode] = getValidCountryCodes(vacancyLocation);
+          return vacancyData;
+        })
+        .get();
 
-                        const countryNameFromLibrary = getName(countryCode);
-                        vacancyData.location = getEnglishCountryName(
-                            countryNameFromLibrary
-                        );
-                    } else return null;
+      const processedVacancies = await Promise.all(promises);
 
-                    console.log(vacancyData)
+      vacancies.push(...processedVacancies.filter(Boolean));
 
-                    return vacancyData;
-                })
-                .get();
-
-            const processedVacancies = await Promise.all(promises);
-
-            vacancies.push(...processedVacancies.filter(Boolean));
-
-            if ($(".data-row").length < VACANCIES_PER_PAGE) break;
-            offset += VACANCIES_PER_PAGE;
-        }
-
-        dataSaver("Powerco", vacancies);
-    } catch (error) {
-        trackMixpanel("Powerco", 0, false, error.message);
-        console.error("Powerco crawler error:", error);
+      if ($(".data-row").length < VACANCIES_PER_PAGE) break;
+      offset += VACANCIES_PER_PAGE;
     }
+
+    dataSaver("Powerсo", vacancies);
+  } catch (error) {
+    trackMixpanel("Powerсo", 0, false, error.message);
+    console.error("Powerco crawler error:", error);
+  }
 }
 
 async function karcherDataFetcher(offset) {
-    const response = await axios.get(
-        `https://careers.powerco.de/search/?q=&sortColumn=referencedate&sortDirection=desc&startrow=${offset}`
-    );
-    return response.data;
+  const response = await axios.get(
+    `https://careers.powerco.de/search/?q=&sortColumn=referencedate&sortDirection=desc&startrow=${offset}`
+  );
+  return response.data;
 }
+
+fetchingDataFromPowerco();

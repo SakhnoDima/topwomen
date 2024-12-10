@@ -7,7 +7,7 @@ import { fetchingDataEuInvBank } from "./euInvestBank.js";
 import { fetchingDataFromSiemens } from "./siemens.js";
 import { fetchingDataFromKarcher } from "./karcher.js";
 import { fetchingDataFromGrundfos } from "./grundfos.js";
-import {fetchingDataFromPowerco} from "./powerco.js";
+import { fetchingDataFromPowerco } from "./powerco.js";
 
 export const CRAWLERS = {
   euroclear: fetchingDataFromEuroclear,
@@ -19,5 +19,5 @@ export const CRAWLERS = {
   siemens: fetchingDataFromSiemens,
   karcher: fetchingDataFromKarcher,
   grundfos: fetchingDataFromGrundfos,
-  powerco: fetchingDataFromPowerco,
+  powerсo: fetchingDataFromPowerco,
 };
