@@ -68,9 +68,9 @@ export async function fetchingDataFromPowerco() {
       offset += VACANCIES_PER_PAGE;
     }
 
-    dataSaver("Powerсo", vacancies);
+    dataSaver("Powerco", vacancies);
   } catch (error) {
-    trackMixpanel("Powerсo", 0, false, error.message);
+    trackMixpanel("Powerco", 0, false, error.message);
     console.error("Powerco crawler error:", error);
   }
 }
