@@ -21,5 +21,5 @@ export const CRAWLERS = {
   karcher: fetchingDataFromKarcher,
   grundfos: fetchingDataFromGrundfos,
   powerco: fetchingDataFromPowerco,
-  "volkswagen group": fetchingDataFromVolkswagenGroup,
+  volkswagen: fetchingDataFromVolkswagenGroup,
 };
