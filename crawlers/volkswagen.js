@@ -81,5 +81,3 @@ async function volkswagenGroupDataFetcher(offset) {
   );
   return response.data;
 }
-
-fetchingDataFromVolkswagenGroup();
