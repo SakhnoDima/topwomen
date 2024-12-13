@@ -11,6 +11,7 @@ import { fetchingDataFromPowerco } from "./powerco.js";
 import { fetchingDataFromVolkswagenGroup } from "./volkswagen.js";
 import { fetchingDataFromAdm } from "./adm.js";
 import { fetchingDataFromElli } from "./elli.js";
+import { fetchingDataFromBeiersdorf } from "./beiersdorf.js";
 
 export const CRAWLERS = {
   euroclear: fetchingDataFromEuroclear,
@@ -26,4 +27,5 @@ export const CRAWLERS = {
   volkswagen: fetchingDataFromVolkswagenGroup,
   adm: fetchingDataFromAdm,
   elli: fetchingDataFromElli,
+  beiersdorf: fetchingDataFromBeiersdorf,
 };
