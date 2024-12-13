@@ -17,7 +17,7 @@ export async function fetchingDataFromPowerco() {
     const vacancies = [];
 
     while (true) {
-      const responseHtml = await karcherDataFetcher(offset);
+      const responseHtml = await dataFetcher(offset);
       const $ = cheerio.load(responseHtml);
 
       const promises = $(".data-row")
@@ -75,7 +75,7 @@ export async function fetchingDataFromPowerco() {
   }
 }
 
-async function karcherDataFetcher(offset) {
+async function dataFetcher(offset) {
   const response = await axios.get(
     `https://careers.powerco.de/search/?q=&sortColumn=referencedate&sortDirection=desc&startrow=${offset}`
   );
