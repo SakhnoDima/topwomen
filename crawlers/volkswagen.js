@@ -33,7 +33,6 @@ export async function fetchingDataFromVolkswagenGroup() {
 
           if (titleElement.length) {
             vacancyData.title = titleElement.text().trim();
-            const href = titleElement.find("a").attr("href");
 
             vacancyData.url = `https://jobs.volkswagen-group.com${titleElement
               .find("a")
@@ -47,10 +46,15 @@ export async function fetchingDataFromVolkswagenGroup() {
             .text()
             .trim();
 
-          if (vacancyLocation) {
+          if (vacancyLocation.length > 2) {
             const [countryCode] = getValidCountryCodes(vacancyLocation);
 
             const countryNameFromLibrary = getName(countryCode);
+            vacancyData.location = getEnglishCountryName(
+              countryNameFromLibrary
+            );
+          } else if (vacancyLocation.length <= 2) {
+            const countryNameFromLibrary = getName(vacancyLocation);
             vacancyData.location = getEnglishCountryName(
               countryNameFromLibrary
             );
@@ -79,5 +83,6 @@ async function volkswagenGroupDataFetcher(offset) {
   const response = await axios.get(
     `https://jobs.volkswagen-group.com/Volkswagen/search/?&startrow=${offset}`
   );
+
   return response.data;
 }
