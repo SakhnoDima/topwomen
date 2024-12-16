@@ -15,7 +15,7 @@ dotenv.config();
 export async function fetchingDataEuInvBank() {
   console.log("European-Investment-Bank crawler started");
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -51,6 +51,7 @@ export async function fetchingDataEuInvBank() {
     await jobElements[0].click();
 
     let counter = 1;
+    let retry = 0;
 
     while (true) {
       console.log(`Processing job #${counter}...`);
@@ -60,11 +61,23 @@ export async function fetchingDataEuInvBank() {
         );
         if (idElement) {
           id = await idElement.evaluate((el) => el.textContent.trim());
+          if (retry > 5) {
+            let nextPageBtn = await page.$(
+              'a[id="DERIVED_HRS_FLU_HRS_NEXT_PB"]',
+              {
+                timeout: 5000,
+              }
+            );
+            await nextPageBtn.click();
+            console.log("Click next page Btn after 5 retry");
+          }
         } else {
           console.warn("ID element not found, retrying...");
         }
+        retry++;
         await delayer(300);
       }
+      retry = 0;
       console.log("Start search");
 
       // search title
@@ -201,24 +214,26 @@ export async function fetchingDataEuInvBank() {
       const isDisabled = await nextPageBtn.evaluate(
         (el) => el.getAttribute("disabled") === "disabled"
       );
+
+      vacancies.push({ title, sector, location, url: link });
+
       if (isDisabled) {
         console.log("Next page button is disabled, ending process...");
         break;
       }
 
       console.log("Going to next job...");
-      vacancies.push({ title, sector, location, url: link });
       await nextPageBtn.click();
       idOld = id;
       counter++;
-      await delayer(500);
+      await delayer(2000);
     }
   } catch (error) {
     await trackMixpanel("EuInvestBank International", 0, false, error.message);
     console.error("European-Investment-Bank crawler error:", error);
   } finally {
-    await dataSaver("European Investment Bank", vacancies);
+    if (vacancies.length > 0)
+      await dataSaver("European Investment Bank", vacancies);
     await browser.close();
-    console.log(vacancies.length);
   }
 }

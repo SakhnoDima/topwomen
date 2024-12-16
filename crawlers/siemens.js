@@ -11,7 +11,7 @@ export async function fetchingDataFromSiemens() {
   const parallelRequests = 5;
   let page = 0;
   let results = [];
-
+  console.log("Siemens crawler started");
   try {
     while (true) {
       const positions = await fetchBatch(page, parallelRequests, limit);
@@ -32,7 +32,7 @@ export async function fetchingDataFromSiemens() {
         break;
       }
       page += parallelRequests;
-      await delayer(1000);
+      await delayer(5000);
     }
     await dataSaver("Siemens", results);
   } catch (error) {
