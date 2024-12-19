@@ -28,7 +28,11 @@ class TaskSchedulerService {
 
   async runTasksSequentially() {
     for (const task of this.tasks) {
-      await task();
+      try {
+        await task();
+      } catch (error) {
+        console.log("CRAWLER ERROR! Check logs");
+      }
     }
   }
 

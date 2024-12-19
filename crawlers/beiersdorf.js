@@ -9,11 +9,10 @@ import { getEnglishCountryName } from "../helpers/index.js";
 const VACANCIES_PER_PAGE = 100;
 
 export async function fetchingDataFromBeiersdorf() {
+  console.log("Beiersdorf crawler started");
+  const vacancies = [];
   try {
-    console.log("Beiersdorf crawler started");
-
     let page = 1;
-    const vacancies = [];
 
     while (true) {
       const responseHtml = await fetchAllJobResponses(VACANCIES_PER_PAGE, page);
@@ -60,11 +59,13 @@ export async function fetchingDataFromBeiersdorf() {
       if ($(".cw-job").length < 100) break;
       page += 1;
     }
-    console.log(vacancies);
-    dataSaver("Beiersdorf", vacancies);
   } catch (error) {
     console.error("Beiersdorf crawler error:", error);
     trackMixpanel("Beiersdorf", 0, false, error.message);
+  } finally {
+    if (vacancies.length > 0) {
+      dataSaver("Beiersdorf", vacancies);
+    }
   }
 }
 

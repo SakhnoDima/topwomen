@@ -21,7 +21,7 @@ export const dataSaver = async (companyName, vacancies) => {
   };
 
   try {
-    const response = await axios.post(
+    await axios.post(
       "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
       JSON.stringify(responseBody),
       {

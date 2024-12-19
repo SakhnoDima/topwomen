@@ -3,13 +3,15 @@ import axios from "axios";
 import { trackMixpanel } from "../mixpanel.js";
 import { dataSaver } from "../controllers/dataControllers.js";
 import { getEnglishCountryName } from "../helpers/index.js";
+import { delayer } from "../assistants/helpers.js";
 
 export async function fetchingDataFromAdm() {
+  const vacancies = [];
+
   try {
     console.log("ADM crawler started");
 
     let page = 1;
-    const vacancies = [];
 
     while (true) {
       const unFilteredVacancies = await fetchAllJobResponses(page);
@@ -31,12 +33,15 @@ export async function fetchingDataFromAdm() {
         break;
       }
       page += 5;
+      await delayer(1000);
     }
-
-    dataSaver("ADM", vacancies);
   } catch (error) {
     console.error("ADM crawler error:", error);
     trackMixpanel("ADM", 0, false, error.message);
+  } finally {
+    if (vacancies.length > 0) {
+      dataSaver("ADM", vacancies);
+    }
   }
 }
 
@@ -130,7 +135,11 @@ async function fetchAllJobResponses(page) {
 
       return responses.map((elem) => elem.Job).flat();
     } catch (error) {
-      if (error.code === "ECONNRESET" || error.code === "ETIMEDOUT") {
+      if (
+        error.code === "ECONNRESET" ||
+        error.code === "ETIMEDOUT" ||
+        error.response?.status === 503
+      ) {
         console.warn(
           `Received ${error.response.status}. Attempt ${attempt}. Waiting for 90000ms...`
         );
