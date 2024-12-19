@@ -107,6 +107,7 @@ export const countryMapping = {
   "United Arab Emirates": "United Arab Emirates",
   "United Kingdom": "United Kingdom",
   "United States": "United States",
+  US: "United States",
   "United States of America": "United States",
   Uruguay: "Uruguay",
   "Venezuela, Bolivarian Republic of": "Venezuela",

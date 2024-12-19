@@ -1,4 +1,5 @@
 export const statesOfUs = [
+  "US",
   "AL",
   "AK",
   "AZ",

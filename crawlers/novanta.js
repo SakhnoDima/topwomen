@@ -31,16 +31,10 @@ export async function fetchingDataFromAdm() {
             ? (location = "United States")
             : (location = getEnglishCountryName(locationCode[1]));
         } else if (locationCode.length === 3) {
-          console.log(vacancy.locationsText);
-
-          let locationsFromObj = getEnglishCountryName(
-            vacancy.locationsText.split(",")[1].trim()
-          );
-          statesOfUs.includes(locationsFromObj)
+          statesOfUs.includes(locationCode[2])
             ? (location = "United States")
-            : (location = locationsFromObj);
+            : (location = null);
         }
-
         if (location) {
           vacancies.push({
             title,
@@ -59,12 +53,10 @@ export async function fetchingDataFromAdm() {
     }
   } catch (error) {
     console.error("Novanta crawler error:", error);
-    //trackMixpanel("Novanta", 0, false, error.message);
+    trackMixpanel("Novanta", 0, false, error.message);
   } finally {
     if (vacancies.length > 0) {
-      //dataSaver("Novanta", vacancies);
-      console.log(vacancies);
-      console.log(vacancies.length);
+      dataSaver("Novanta", vacancies);
     }
   }
 }
@@ -134,6 +126,3 @@ async function fetchAllJobsNovanta(page) {
 
   throw new Error("Failed to fetch batch after 5 attempts.");
 }
-// const res = await fetchAllJobsNovanta(5);
-// console.log(res);
-fetchingDataFromAdm();
