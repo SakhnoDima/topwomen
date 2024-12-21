@@ -3,14 +3,14 @@ import { trackMixpanel } from "../mixpanel.js";
 import axiosRetry from "axios-retry";
 
 axiosRetry(axios, {
-  retries: 3, // Кількість спроб
+  retries: 5, // Кількість спроб
   retryDelay: (retryCount) => {
-    console.log(`Retry attempt: ${retryCount}`);
-    return retryCount * 1000; // Затримка між спробами (1 секунда, 2 секунди, 3 секунди тощо)
+    console.log(`Retry saving data: ${retryCount}`);
+    return retryCount * 2000; // Затримка між спробами (1 секунда, 2 секунди, 3 секунди тощо)
   },
   retryCondition: (error) => {
-    // Повторювати тільки для помилок мережі або серверних помилок (5xx)
-    return axiosRetry.isNetworkOrIdempotentRequestError(error);
+    const isRetryable = axiosRetry.isNetworkOrIdempotentRequestError(error);
+    return isRetryable || [502, 503, 504].includes(error.response?.status);
   },
 });
 
@@ -36,6 +36,11 @@ export const dataSaver = async (companyName, vacancies) => {
     trackMixpanel(companyName, vacancies.length, true);
   } catch (error) {
     console.error("Error saving data:", error.message);
-    throw new Error(error.message);
+    console.error("Error saving data:", {
+      message: error.message,
+      response: error.response?.data || "No response data",
+      status: error.response?.status || "No status",
+    });
+    throw new Error(`Saving data failed: ${error.message}`);
   }
 };
