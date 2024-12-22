@@ -17,16 +17,24 @@ export async function fetchingDataFromAdm() {
       const unFilteredVacancies = await fetchAllJobResponses(page);
 
       for (const vacancy of unFilteredVacancies) {
-        const title = vacancy.Questions[7].Value.trim();
-        const location = vacancy.Questions[11].Value.trim();
-        const url = vacancy.Link;
+        const vacancyData = {
+          title: "",
+          location: "",
+          url: "",
+          sector: "",
+        };
 
-        vacancies.push({
-          title,
-          sector: await getSector(title),
-          location: getEnglishCountryName(location),
-          url,
-        });
+        for (const vacancyDescription of vacancy.Questions) {
+          if (vacancyDescription.QuestionName === "jobtitle") {
+            vacancyData.title = vacancyDescription.Value;
+            vacancyData.sector = await getSector(vacancyDescription.Value);
+          } else if (vacancyDescription.QuestionName === "formtext10") {
+            vacancyData.location = vacancyDescription.Value;
+          }
+        }
+        vacancyData.url = vacancy.Link;
+
+        vacancies.push(vacancyData);
       }
 
       if (unFilteredVacancies.length < 250) {
