@@ -29,7 +29,9 @@ export async function fetchingDataFromAdm() {
             vacancyData.title = vacancyDescription.Value;
             vacancyData.sector = await getSector(vacancyDescription.Value);
           } else if (vacancyDescription.QuestionName === "formtext10") {
-            vacancyData.location = vacancyDescription.Value;
+            vacancyData.location = getEnglishCountryName(
+              vacancyDescription.Value.trim()
+            );
           }
         }
         vacancyData.url = vacancy.Link;
