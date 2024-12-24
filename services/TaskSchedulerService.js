@@ -31,6 +31,7 @@ class TaskSchedulerService {
       try {
         await task();
       } catch (error) {
+        console.log(error);
         console.log("CRAWLER ERROR! Check logs");
       }
     }
