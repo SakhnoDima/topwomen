@@ -229,7 +229,7 @@ export async function fetchingDataEuInvBank() {
       await delayer(2000);
     }
   } catch (error) {
-    await trackMixpanel("EuInvestBank International", 0, false, error.message);
+    await trackMixpanel("European Investment Bank", 0, false, error.message);
     console.error("European-Investment-Bank crawler error:", error);
   } finally {
     if (vacancies.length > 0)
