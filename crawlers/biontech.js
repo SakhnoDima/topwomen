@@ -47,14 +47,14 @@ export async function fetchingDataFromBiontech() {
         const [countryCode] = getValidCountryCodes(vacancyLocation);
         const country = getName(countryCode);
 
-        const vacancyData = {
-          title: vacancyTitle,
-          sector: vacancySector,
-          location: getEnglishCountryName(country),
-          url: `https://jobs.biontech.com${vacancyLink}`,
-        };
-
-        vacancies.push(vacancyData);
+        if (vacancyTitle && vacancyLink && vacancyLocation) {
+          vacancies.push({
+            title: vacancyTitle,
+            sector: vacancySector,
+            location: getEnglishCountryName(country),
+            url: `https://jobs.biontech.com${vacancyLink}`,
+          });
+        }
       });
 
       offset += BATCH_SIZE;
@@ -64,7 +64,9 @@ export async function fetchingDataFromBiontech() {
       }
     }
 
-    dataSaver("Biontech", vacancies);
+    if (vacancies.length > 0) {
+      dataSaver("Biontech", vacancies);
+    }
   } catch (error) {
     console.error("Biontech crawler error:", error);
     trackMixpanel("Biontech", 0, false, error.message);
