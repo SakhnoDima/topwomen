@@ -7,6 +7,7 @@ import { getSector } from "../assistants/sector-switcher.js";
 import { dataSaver } from "../controllers/dataControllers.js";
 import { getEnglishCountryName } from "../helpers/index.js";
 import { getValidCountryCodes } from "./biontech.js";
+import { title } from "process";
 
 const VACANCIES_PER_PAGE = 50;
 
@@ -19,6 +20,7 @@ export async function fetchingDataFromKarcher() {
     while (true) {
       const responseHtml = await karcherDataFetcher(offset);
       const $ = cheerio.load(responseHtml);
+      let isDuplicateFound = false;
 
       const promises = $(".data-row")
         .map(async (_, element) => {
@@ -32,11 +34,20 @@ export async function fetchingDataFromKarcher() {
           const titleElement = $(element).find(".hidden-phone .jobTitle-link");
 
           if (titleElement.length) {
-            vacancyData.title = titleElement.text().trim();
-            vacancyData.url = `https://careers.kaercher.com${titleElement.attr(
-              "href"
-            )}`;
-            vacancyData.sector = await getSector(titleElement.text().trim());
+            const vacancyTitle = titleElement.text().trim();
+            const vacancyHref = titleElement.attr("href");
+            const isVacancyExist = vacancies.some(({ url }) =>
+              url.includes(vacancyHref)
+            );
+
+            if (isVacancyExist) {
+              isDuplicateFound = true;
+              return null;
+            }
+
+            vacancyData.title = vacancyTitle;
+            vacancyData.url = `https://careers.kaercher.com${vacancyHref}`;
+            vacancyData.sector = await getSector(vacancyTitle);
           } else return null;
 
           const vacancyLocation = $(element)
@@ -62,7 +73,7 @@ export async function fetchingDataFromKarcher() {
 
       vacancies.push(...processedVacancies.filter(Boolean));
 
-      if ($(".data-row").length < VACANCIES_PER_PAGE) break;
+      if (isDuplicateFound || $(".data-row").length < VACANCIES_PER_PAGE) break;
       offset += VACANCIES_PER_PAGE;
     }
 
