@@ -42,13 +42,20 @@ export async function fetchingDataFromEuCentralBank() {
           //location
           vacancyData.location = "Germany";
 
+          const hasEmptyValues = Object.values(vacancyData).some(
+            (value) => !value || value.trim() === ""
+          );
+          if (hasEmptyValues) {
+            return null; // Skip this object
+          }
+
           return vacancyData;
         })
         .get();
 
       const processedVacancies = await Promise.all(promises);
 
-      vacancies.push(...processedVacancies);
+      vacancies.push(...processedVacancies.filter(Boolean));
 
       if (processedVacancies.length < 10) {
         break;
@@ -67,5 +74,6 @@ async function dataFetcher(offset) {
   const response = await axios.get(
     `https://talent.ecb.europa.eu/careers/SearchJobs/?jobRecordsPerPage=10&jobOffset=${offset}`
   );
+
   return response.data;
 }
