@@ -20,7 +20,7 @@ export const CRAWLERS = {
     biontech: fetchingDataFromBiontech,
     hilti: fetchingDataFromHilti,
     "mondelez international": fetchingDataFromMondelez,
-    vinci: fetchingDataFromVinci,
+    "vinci construction": fetchingDataFromVinci,
     "european investment bank": fetchingDataEuInvBank,
     siemens: fetchingDataFromSiemens,
     karcher: fetchingDataFromKarcher,
