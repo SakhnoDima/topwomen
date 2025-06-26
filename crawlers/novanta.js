@@ -8,6 +8,7 @@ import { statesOfUs } from "../constants/usaStates.js";
 
 const LIMIT = 20;
 const OFFSET = 20;
+const parallelRequests = 5;
 
 export async function fetchingDataFromNovanta() {
     const vacancies = [];
@@ -18,6 +19,7 @@ export async function fetchingDataFromNovanta() {
 
         while (true) {
             const unFilteredVacancies = await fetchAllJobsNovanta(page);
+            console.log(unFilteredVacancies);
 
             for (const vacancy of unFilteredVacancies) {
                 const title = vacancy.title.trim();
@@ -45,9 +47,10 @@ export async function fetchingDataFromNovanta() {
                 }
             }
 
-            if (unFilteredVacancies.length < LIMIT) {
+            if (unFilteredVacancies.length < LIMIT * parallelRequests) {
                 break;
             }
+
             page += 5;
             await delayer(1000);
         }
@@ -62,7 +65,6 @@ export async function fetchingDataFromNovanta() {
 }
 
 async function fetchAllJobsNovanta(page) {
-    const parallelRequests = 5;
     const results = [];
 
     const baseUrl =
@@ -74,6 +76,8 @@ async function fetchAllJobsNovanta(page) {
                 { length: parallelRequests },
                 (_, i) => {
                     const offset = (page + i) * OFFSET;
+                    console.log(offset);
+
                     return axios
                         .post(
                             baseUrl,
