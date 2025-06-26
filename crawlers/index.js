@@ -13,21 +13,24 @@ import { fetchingDataFromAdm } from "./adm.js";
 import { fetchingDataFromElli } from "./elli.js";
 import { fetchingDataFromBeiersdorf } from "./beiersdorf.js";
 import { fetchingDataFromEuCentralBank } from "./euCentralBank.js";
+import { fetchingDataFromNovanta } from "./novanta.js";
 
 export const CRAWLERS = {
-  euroclear: fetchingDataFromEuroclear,
-  biontech: fetchingDataFromBiontech,
-  hilti: fetchingDataFromHilti,
-  "mondelez international": fetchingDataFromMondelez,
-  vinci: fetchingDataFromVinci,
-  "european investment bank": fetchingDataEuInvBank,
-  siemens: fetchingDataFromSiemens,
-  karcher: fetchingDataFromKarcher,
-  grundfos: fetchingDataFromGrundfos,
-  powerco: fetchingDataFromPowerco,
-  volkswagen: fetchingDataFromVolkswagenGroup,
-  adm: fetchingDataFromAdm,
-  elli: fetchingDataFromElli,
-  beiersdorf: fetchingDataFromBeiersdorf,
-  "european central bank": fetchingDataFromEuCentralBank,
+    euroclear: fetchingDataFromEuroclear,
+    biontech: fetchingDataFromBiontech,
+    hilti: fetchingDataFromHilti,
+    "mondelez international": fetchingDataFromMondelez,
+    vinci: fetchingDataFromVinci,
+    "european investment bank": fetchingDataEuInvBank,
+    siemens: fetchingDataFromSiemens,
+    karcher: fetchingDataFromKarcher,
+    grundfos: fetchingDataFromGrundfos,
+    powerco: fetchingDataFromPowerco,
+    volkswagen: fetchingDataFromVolkswagenGroup,
+    adm: fetchingDataFromAdm,
+    elli: fetchingDataFromElli,
+    beiersdorf: fetchingDataFromBeiersdorf,
+    "european central bank": fetchingDataFromEuCentralBank,
+
+    novanta: fetchingDataFromNovanta,
 };
