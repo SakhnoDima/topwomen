@@ -34,10 +34,12 @@ const chunkArray = (array, size) => {
 
 export const dataSaver = async (companyName, vacancies) => {
     const chunks = chunkArray(vacancies, 1000);
+    let totalSaved = 0;
     for (const [index, chunk] of chunks.entries()) {
         const responseBody = {
             company: companyName,
             vacancies: chunk,
+            ...(index === chunks.length - 1 ? { is_last_batch: true } : {}),
         };
         try {
             await axios.post(
@@ -49,10 +51,12 @@ export const dataSaver = async (companyName, vacancies) => {
                     },
                 }
             );
-
-            console.log(`${companyName} vacancies saved!`);
-            console.log(`Total vacancies in ${companyName}`, vacancies.length);
-            trackMixpanel(companyName, vacancies.length, true);
+            totalSaved += chunk.length;
+            console.log(
+                `${companyName} batch ${index + 1}/${chunks.length} saved (${
+                    chunk.length
+                } items)`
+            );
         } catch (error) {
             console.error("Error saving data:", error.message);
             console.error("Error saving data:", {
@@ -63,4 +67,7 @@ export const dataSaver = async (companyName, vacancies) => {
             throw new Error(`Saving data failed: ${error.message}`);
         }
     }
+    console.log(`${companyName} vacancies saved!`);
+    console.log(`Total vacancies in ${companyName}: ${totalSaved}`);
+    trackMixpanel(companyName, totalSaved, true);
 };
