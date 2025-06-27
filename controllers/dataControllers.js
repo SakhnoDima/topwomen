@@ -24,33 +24,43 @@ axiosRetry(axios, {
     },
 });
 
+const chunkArray = (array, size) => {
+    const result = [];
+    for (let i = 0; i < array.length; i += size) {
+        result.push(array.slice(i, i + size));
+    }
+    return result;
+};
+
 export const dataSaver = async (companyName, vacancies) => {
-    const responseBody = {
-        company: companyName,
-        vacancies,
-    };
+    const chunks = chunkArray(vacancies, 1000);
+    for (const [index, chunk] of chunks.entries()) {
+        const responseBody = {
+            company: companyName,
+            vacancies: chunk,
+        };
+        try {
+            await axios.post(
+                "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
+                JSON.stringify(responseBody),
+                {
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
 
-    try {
-        await axios.post(
-            "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
-            JSON.stringify(responseBody),
-            {
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            }
-        );
-
-        console.log(`${companyName} vacancies saved!`);
-        console.log(`Total vacancies in ${companyName}`, vacancies.length);
-        trackMixpanel(companyName, vacancies.length, true);
-    } catch (error) {
-        console.error("Error saving data:", error.message);
-        console.error("Error saving data:", {
-            message: error.message,
-            response: error.response?.data || "No response data",
-            status: error.response?.status || "No status",
-        });
-        throw new Error(`Saving data failed: ${error.message}`);
+            console.log(`${companyName} vacancies saved!`);
+            console.log(`Total vacancies in ${companyName}`, vacancies.length);
+            trackMixpanel(companyName, vacancies.length, true);
+        } catch (error) {
+            console.error("Error saving data:", error.message);
+            console.error("Error saving data:", {
+                message: error.message,
+                response: error.response?.data || "No response data",
+                status: error.response?.status || "No status",
+            });
+            throw new Error(`Saving data failed: ${error.message}`);
+        }
     }
 };
