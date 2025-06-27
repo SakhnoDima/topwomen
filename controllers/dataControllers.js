@@ -10,7 +10,17 @@ axiosRetry(axios, {
     },
     retryCondition: (error) => {
         const isRetryable = axiosRetry.isNetworkOrIdempotentRequestError(error);
-        return isRetryable || [502, 503, 504].includes(error.response?.status);
+        const status = error.response?.status;
+
+        console.log("Retry condition triggered with:");
+        console.log("Is network or idempotent error:", isRetryable);
+        console.log("HTTP status:", status);
+        console.log(
+            "Full error response:",
+            error.response?.data || "No response data"
+        );
+
+        return isRetryable || [502, 503, 504].includes(status);
     },
 });
 

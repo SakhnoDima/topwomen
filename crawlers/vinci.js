@@ -7,159 +7,172 @@ import { dataSaver } from "../controllers/dataControllers.js";
 import { getEnglishCountryName } from "../helpers/index.js";
 
 export async function fetchingDataFromVinci() {
-  try {
-    console.log("Vinci crawler started");
+    try {
+        console.log("Vinci crawler started");
 
-    let page = 1;
-    const offset = 200;
-    const vacancies = [];
+        let page = 1;
+        const offset = 200;
+        const vacancies = [];
 
-    const countries = await getAllCountry();
+        const countries = await getAllCountry();
 
-    for (const country of countries) {
-      console.log(country);
+        for (const country of countries) {
+            console.log(country);
 
-      while (true) {
-        const response = await fetchAllJobResponses(page, offset, country);
-        const $ = cheerio.load(response);
-        const vacancyPromises = $(".search-results--list > li")
-          .map(async (_, element) => {
-            try {
-              const vacancyTitle = $(element)
-                .find(".search-results--link-jobtitle")
-                .text()
-                .trim();
+            while (true) {
+                const response = await fetchAllJobResponses(
+                    page,
+                    offset,
+                    country
+                );
+                const $ = cheerio.load(response);
+                const vacancyPromises = $(".search-results--list > li")
+                    .map(async (_, element) => {
+                        try {
+                            const vacancyTitle = $(element)
+                                .find(".search-results--link-jobtitle")
+                                .text()
+                                .trim();
 
-              const vacancyLink = $(element)
-                .find(".search-results--link")
-                .attr("href");
+                            const vacancyLink = $(element)
+                                .find(".search-results--link")
+                                .attr("href");
 
-              if (!vacancyTitle || !vacancyLink || !country) {
-                console.log("Skipped invalid vacancy");
-                return null;
-              }
+                            if (!vacancyTitle || !vacancyLink || !country) {
+                                console.log("Skipped invalid vacancy");
+                                return null;
+                            }
 
-              const vacancySector = await getSector(vacancyTitle);
+                            const vacancySector = await getSector(vacancyTitle);
 
-              return {
-                title: vacancyTitle,
-                url: `https://jobs.vinci.com${vacancyLink}`,
-                sector: vacancySector,
-                location: getEnglishCountryName(country.name),
-              };
-            } catch (err) {
-              console.error("Error processing vacancy:", err.message);
-              return null;
+                            return {
+                                title: vacancyTitle,
+                                url: `https://jobs.vinci.com${vacancyLink}`,
+                                sector: vacancySector,
+                                location: getEnglishCountryName(country.name),
+                            };
+                        } catch (err) {
+                            console.error(
+                                "Error processing vacancy:",
+                                err.message
+                            );
+                            return null;
+                        }
+                    })
+                    .get();
+
+                let results = (await Promise.all(vacancyPromises)).filter(
+                    Boolean
+                );
+                vacancies.push(...results);
+
+                console.log(
+                    `Page ${page} processed, vacancies found: ${results.length}`
+                );
+                page++;
+                delayer(1000);
+
+                if (results.length < offset) {
+                    console.log(
+                        `Stop crawling - fewer vacancies than offset. ${
+                            (country.name, results.length)
+                        } `
+                    );
+                    page = 1;
+                    break;
+                }
             }
-          })
-          .get();
-
-        let results = (await Promise.all(vacancyPromises)).filter(Boolean);
-        vacancies.push(...results);
-
-        console.log(
-          `Page ${page} processed, vacancies found: ${results.length}`
-        );
-        page++;
-        delayer(1000);
-
-        if (results.length < offset) {
-          console.log(
-            `Stop crawling - fewer vacancies than offset. ${
-              (country.name, results.length)
-            } `
-          );
-          page = 1;
-          break;
         }
-      }
-    }
 
-    dataSaver("Vinci", vacancies);
-  } catch (error) {
-    console.error("Vinci crawler error:", error);
-    trackMixpanel("Vinci", 0, false, error.message);
-  }
+        dataSaver("Vinci", vacancies);
+    } catch (error) {
+        console.error("Vinci crawler error:", error);
+        trackMixpanel("Vinci", 0, false, error.message);
+    }
 }
 
 async function fetchAllJobResponses(page, offset, country) {
-  const baseUrl = "https://jobs.vinci.com/en/search-jobs/results";
-  const queryParams = `?ActiveFacetID=${country.id}&CurrentPage=${page}&RecordsPerPage=${offset}&Distance=50&RadiusUnitType=0&Keywords=&Location=&ShowRadius=False&IsPagination=True&CustomFacetName=&FacetTerm=&FacetType=0&FacetFilters%5B0%5D.ID=${country.id}&FacetFilters%5B0%5D.FacetType=2&FacetFilters%5B0%5D.Count=${country.count}&FacetFilters%5B0%5D.Display=${country.name}&FacetFilters%5B0%5D.IsApplied=true&FacetFilters%5B0%5D.FieldName=&SearchResultsModuleName=Search+Results&SearchFiltersModuleName=Search+Filters&SortCriteria=0&SortDirection=0&SearchType=6&PostalCode=&ResultsType=0&fc=&fl=&fcf=&afc=&afl=&afcf=`;
+    const baseUrl = "https://jobs.vinci.com/en/search-jobs/results";
+    const queryParams = `?ActiveFacetID=${country.id}&CurrentPage=${page}&RecordsPerPage=${offset}&Distance=50&RadiusUnitType=0&Keywords=&Location=&ShowRadius=False&IsPagination=True&CustomFacetName=&FacetTerm=&FacetType=0&FacetFilters%5B0%5D.ID=${country.id}&FacetFilters%5B0%5D.FacetType=2&FacetFilters%5B0%5D.Count=${country.count}&FacetFilters%5B0%5D.Display=${country.name}&FacetFilters%5B0%5D.IsApplied=true&FacetFilters%5B0%5D.FieldName=&SearchResultsModuleName=Search+Results&SearchFiltersModuleName=Search+Filters&SortCriteria=0&SortDirection=0&SearchType=6&PostalCode=&ResultsType=0&fc=&fl=&fcf=&afc=&afl=&afcf=`;
 
-  const url = `${baseUrl}${queryParams}`;
+    const url = `${baseUrl}${queryParams}`;
 
-  try {
-    const response = await axios.get(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-        TE: "Trailers",
-        Referer: "https://jobs.vinci.com/en/search-jobs",
-        Origin: "https://jobs.vinci.com",
-        "Sec-Fetch-Site": "same-origin",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-User": "?1",
-        "Sec-Fetch-Dest": "document",
-        DNT: "1",
-        "X-Requested-With": "XMLHttpRequest",
-      },
-    });
+    try {
+        const response = await axios.get(url, {
+            headers: {
+                "User-Agent":
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Cache-Control": "no-cache",
+                Connection: "keep-alive",
+                "Upgrade-Insecure-Requests": "1",
+                TE: "Trailers",
+                Referer: "https://jobs.vinci.com/en/search-jobs",
+                Origin: "https://jobs.vinci.com",
+                "Sec-Fetch-Site": "same-origin",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-User": "?1",
+                "Sec-Fetch-Dest": "document",
+                DNT: "1",
+                "X-Requested-With": "XMLHttpRequest",
+            },
+        });
 
-    return response.data.results;
-  } catch (error) {
-    throw new Error(`Request error: ${error.message}`);
-  }
+        return response.data.results;
+    } catch (error) {
+        throw new Error(`Request error: ${error.message}`);
+    }
 }
 
 async function getAllCountry() {
-  const baseUrl = "https://jobs.vinci.com/en/search-jobs/results";
-  const queryParams = `?ActiveFacetID=0&CurrentPage=1&RecordsPerPage=1&Distance=50&RadiusUnitType=0&Keywords=&Location=&ShowRadius=False&IsPagination=False&CustomFacetName=&FacetTerm=&FacetType=0&SearchResultsModuleName=Search+Results&SearchFiltersModuleName=Search+Filters&SortCriteria=0&SortDirection=0&SearchType=6&PostalCode=&ResultsType=0&fc=&fl=&fcf=&afc=&afl=&afcf=`;
-  const url = `${baseUrl}${queryParams}`;
+    const baseUrl = "https://jobs.vinci.com/en/search-jobs/results";
+    const queryParams = `?ActiveFacetID=0&CurrentPage=1&RecordsPerPage=1&Distance=50&RadiusUnitType=0&Keywords=&Location=&ShowRadius=False&IsPagination=False&CustomFacetName=&FacetTerm=&FacetType=0&SearchResultsModuleName=Search+Results&SearchFiltersModuleName=Search+Filters&SortCriteria=0&SortDirection=0&SearchType=6&PostalCode=&ResultsType=0&fc=&fl=&fcf=&afc=&afl=&afcf=`;
+    const url = `${baseUrl}${queryParams}`;
 
-  try {
-    const response = await axios.get(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-        TE: "Trailers",
-        Referer: "https://jobs.vinci.com/en/search-jobs",
-        Origin: "https://jobs.vinci.com",
-        "Sec-Fetch-Site": "same-origin",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-User": "?1",
-        "Sec-Fetch-Dest": "document",
-        DNT: "1",
-        "X-Requested-With": "XMLHttpRequest",
-      },
-    });
+    try {
+        const response = await axios.get(url, {
+            headers: {
+                "User-Agent":
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Cache-Control": "no-cache",
+                Connection: "keep-alive",
+                "Upgrade-Insecure-Requests": "1",
+                TE: "Trailers",
+                Referer: "https://jobs.vinci.com/en/search-jobs",
+                Origin: "https://jobs.vinci.com",
+                "Sec-Fetch-Site": "same-origin",
+                "Sec-Fetch-Mode": "navigate",
+                "Sec-Fetch-User": "?1",
+                "Sec-Fetch-Dest": "document",
+                DNT: "1",
+                "X-Requested-With": "XMLHttpRequest",
+            },
+        });
 
-    const $ = cheerio.load(response.data["filters"]);
-    const countries = [];
+        const $ = cheerio.load(response.data["filters"]);
+        const countries = [];
 
-    $("#section_country li").each((index, element) => {
-      const name = $(element).find("label .filter__facet-name").text().trim();
-      const count = $(element).find("label .filter__facet-count").text().trim();
-      const id = $(element).find("input.filter-checkbox").attr("data-id");
+        $("#section_country li").each((index, element) => {
+            const name = $(element)
+                .find("label .filter__facet-name")
+                .text()
+                .trim();
+            const count = $(element)
+                .find("label .filter__facet-count")
+                .text()
+                .trim();
+            const id = $(element).find("input.filter-checkbox").attr("data-id");
 
-      countries.push({ name, count, id });
-    });
+            countries.push({ name, count, id });
+        });
 
-    return countries;
-  } catch (error) {
-    throw new Error(`Request error: ${error.message}`);
-  }
+        return countries;
+    } catch (error) {
+        throw new Error(`Request error: ${error.message}`);
+    }
 }
