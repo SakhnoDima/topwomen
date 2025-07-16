@@ -1,12 +1,13 @@
 import axios from "axios";
 import { trackMixpanel } from "../mixpanel.js";
 import axiosRetry from "axios-retry";
+import { TARGET_SITES_URL } from "../constants/index.js";
 
 axiosRetry(axios, {
-    retries: 5, // Кількість спроб
+    retries: 5,
     retryDelay: (retryCount) => {
         console.log(`Retry saving data: ${retryCount}`);
-        return retryCount * 2000; // Затримка між спробами (1 секунда, 2 секунди, 3 секунди тощо)
+        return retryCount * 2000;
     },
     retryCondition: (error) => {
         const isRetryable = axiosRetry.isNetworkOrIdempotentRequestError(error);
@@ -35,38 +36,40 @@ const chunkArray = (array, size) => {
 export const dataSaver = async (companyName, vacancies) => {
     const chunks = chunkArray(vacancies, 1000);
     let totalSaved = 0;
-    for (const [index, chunk] of chunks.entries()) {
-        const responseBody = {
-            company: companyName,
-            vacancies: chunk,
-            ...(index === chunks.length - 1 ? { is_last_batch: true } : {}),
-        };
-        try {
-            await axios.post(
-                "https://topwomen.careers/wp-json/custom/v1/add-company-vacancies",
-                JSON.stringify(responseBody),
-                {
+
+    try {
+        for (const [index, chunk] of chunks.entries()) {
+            const responseBody = {
+                company: companyName,
+                vacancies: chunk,
+                ...(index === chunks.length - 1 ? { is_last_batch: true } : {}),
+            };
+
+            for (const url of TARGET_SITES_URL) {
+                await axios.post(url, JSON.stringify(responseBody), {
                     headers: {
                         "Content-Type": "application/json",
                     },
-                }
-            );
+                });
+                console.log(
+                    `${companyName} batch ${index + 1}/${
+                        chunks.length
+                    } saved to ${url} (${chunk.length} items)`
+                );
+            }
+
             totalSaved += chunk.length;
-            console.log(
-                `${companyName} batch ${index + 1}/${chunks.length} saved (${
-                    chunk.length
-                } items)`
-            );
-        } catch (error) {
-            console.error("Error saving data:", error.message);
-            console.error("Error saving data:", {
-                message: error.message,
-                response: error.response?.data || "No response data",
-                status: error.response?.status || "No status",
-            });
-            throw new Error(`Saving data failed: ${error.message}`);
         }
+    } catch (error) {
+        console.error("Error saving data:", error.message);
+        console.error("Error saving data:", {
+            message: error.message,
+            response: error.response?.data || "No response data",
+            status: error.response?.status || "No status",
+        });
+        throw new Error(`Saving data failed: ${error.message}`);
     }
+
     console.log(`${companyName} vacancies saved!`);
     console.log(`Total vacancies in ${companyName}: ${totalSaved}`);
     trackMixpanel(companyName, totalSaved, true);
