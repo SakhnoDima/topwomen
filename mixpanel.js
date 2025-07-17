@@ -16,11 +16,13 @@ export const trackMixpanel = async (
     crawler,
     totalVacancies,
     successful,
-    message
+    message,
+    url = "Finish with error"
 ) => {
     mixpanel.track(
         crawler,
         {
+            Url: url,
             "Vacancies found": totalVacancies,
             Status: successful === true ? "Success" : "Fail",
             Message: message ? message : "Parsing completed successfully",
@@ -30,6 +32,7 @@ export const trackMixpanel = async (
                 console.error(`Error tracking event for ${crawler}:`, err);
             } else {
                 console.log(`Event for ${crawler} tracked successfully`);
+                console.log(`Total vacancies in ${crawler}: ${totalVacancies}`);
             }
         }
     );

@@ -35,17 +35,19 @@ const chunkArray = (array, size) => {
 
 export const dataSaver = async (companyName, vacancies) => {
     const chunks = chunkArray(vacancies, 1000);
-    let totalSaved = 0;
 
     try {
-        for (const [index, chunk] of chunks.entries()) {
-            const responseBody = {
-                company: companyName,
-                vacancies: chunk,
-                ...(index === chunks.length - 1 ? { is_last_batch: true } : {}),
-            };
+        for (const url of TARGET_SITES_URL) {
+            let totalSaved = 0;
+            for (const [index, chunk] of chunks.entries()) {
+                const responseBody = {
+                    company: companyName,
+                    vacancies: chunk,
+                    ...(index === chunks.length - 1
+                        ? { is_last_batch: true }
+                        : {}),
+                };
 
-            for (const url of TARGET_SITES_URL) {
                 await axios.post(url, JSON.stringify(responseBody), {
                     headers: {
                         "Content-Type": "application/json",
@@ -56,9 +58,9 @@ export const dataSaver = async (companyName, vacancies) => {
                         chunks.length
                     } saved to ${url} (${chunk.length} items)`
                 );
+                totalSaved += chunk.length;
             }
-
-            totalSaved += chunk.length;
+            trackMixpanel(companyName, totalSaved, true, undefined, url);
         }
     } catch (error) {
         console.error("Error saving data:", error.message);
@@ -71,6 +73,4 @@ export const dataSaver = async (companyName, vacancies) => {
     }
 
     console.log(`${companyName} vacancies saved!`);
-    console.log(`Total vacancies in ${companyName}: ${totalSaved}`);
-    trackMixpanel(companyName, totalSaved, true);
 };
