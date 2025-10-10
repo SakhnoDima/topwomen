@@ -14,6 +14,7 @@ import { fetchingDataFromElli } from "./elli.js";
 import { fetchingDataFromBeiersdorf } from "./beiersdorf.js";
 import { fetchingDataFromEuCentralBank } from "./euCentralBank.js";
 import { fetchingDataFromNovanta } from "./novanta.js";
+import { fetchingDataFromSanofi } from "./sanofi.js";
 
 export const CRAWLERS = {
     euroclear: fetchingDataFromEuroclear,
@@ -31,6 +32,6 @@ export const CRAWLERS = {
     elli: fetchingDataFromElli,
     beiersdorf: fetchingDataFromBeiersdorf,
     "european central bank": fetchingDataFromEuCentralBank,
-
     novanta: fetchingDataFromNovanta,
+    sanofi: fetchingDataFromSanofi,
 };
